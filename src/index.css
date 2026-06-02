@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Noto Sans Arabic", system-ui, sans-serif;
+  --color-btp-950: #0a0f1a;
+  --color-btp-900: #0f1729;
+  --color-btp-800: #152238;
+  --color-btp-700: #1e3a5f;
+  --color-btp-600: #2563eb;
+  --color-btp-500: #3b82f6;
+  --color-btp-400: #60a5fa;
+  --color-btp-300: #93c5fd;
+  --color-accent: #06b6d4;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: linear-gradient(135deg, #0a0f1a 0%, #0f1729 50%, #152238 100%);
+  color: #e2e8f0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+[dir="rtl"] .sidebar-icon-gap {
+  margin-inline-start: 0.75rem;
+  margin-inline-end: 0;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f1729;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e3a5f;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2563eb;
+}
+
+.glass-card {
+  background: linear-gradient(145deg, rgba(30, 58, 95, 0.35) 0%, rgba(15, 23, 41, 0.6) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #60a5fa, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.table-scroll {
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  .glass-card {
+    padding: 0.75rem;
+  }
+}

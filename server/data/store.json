@@ -1,0 +1,35 @@
+{
+  "tenants": [
+    {
+      "id": "tenant_default",
+      "name": "SmartChantier Demo Org",
+      "slug": "smartchantier",
+      "plan": "pro",
+      "createdAt": "2026-06-02T17:08:54.162Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj_default",
+      "tenantId": "tenant_default",
+      "name": "Résidence Anfa — Plan extraction",
+      "client": "Promoteur Anfa",
+      "address": "Casablanca, Maroc",
+      "progressPercent": 42,
+      "budgetPercent": 68,
+      "delayPercent": 12,
+      "currency": "MAD",
+      "vatRate": 20,
+      "marginRate": 15,
+      "createdAt": "2026-06-02T17:08:54.163Z",
+      "updatedAt": "2026-06-02T17:08:54.163Z"
+    }
+  ],
+  "jobs": [],
+  "rooms": [],
+  "materials": [],
+  "devis": [],
+  "changes": [],
+  "comparisons": [],
+  "extractions": {}
+}
