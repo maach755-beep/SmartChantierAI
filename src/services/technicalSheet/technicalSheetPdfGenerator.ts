@@ -64,8 +64,8 @@ function drawImageBlock(doc: JsPdfDoc, sheet: TechnicalSheetDocument, labels: Te
 }
 
 function buildTechnicalSheetPdf(doc: JsPdfDoc, sheet: TechnicalSheetDocument, labels: TechnicalSheetPdfLabels): void {
-  let y = drawHeader(doc, labels, sheet);
-  y = drawImageBlock(doc, sheet, labels, MARGIN + 4);
+  drawHeader(doc, labels, sheet);
+  let y = drawImageBlock(doc, sheet, labels, MARGIN + 4);
 
   const metaRows: [string, string][] = [
     [labels.productName, sheet.productName],

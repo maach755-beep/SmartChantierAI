@@ -178,7 +178,7 @@ async function fetchProductHits(parsed: ParsedProcurementQuery): Promise<{
   query: string;
 }> {
   const primaryQuery = buildTavilyWebQuery(parsed);
-  let payload = await callTavilyApi(primaryQuery);
+  const payload = await callTavilyApi(primaryQuery);
 
   let hits = dedupeByUrl(
     (payload.results ?? [])

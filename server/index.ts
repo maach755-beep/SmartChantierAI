@@ -29,7 +29,8 @@ app.use('/api/v1/plan-extraction', tenantMiddleware, planExtractionRouter);
 app.use('/api/v1/site-director', tenantMiddleware, siteDirectorRouter);
 app.use('/api/tavily', tavilyRouter);
 
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: Error, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  void next;
   res.status(500).json({ error: err.message });
 });
 

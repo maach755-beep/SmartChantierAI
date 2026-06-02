@@ -174,7 +174,7 @@ function drawMetaGrid(
   const cfg = KIND_CONFIG[kind];
   const pageWidth = doc.internal.pageSize.getWidth();
   const colWidth = (pageWidth - MARGIN * 2 - 8) / 2;
-  let y = drawHeader(doc, kind, subtitle);
+  const y = drawHeader(doc, kind, subtitle);
 
   const left: [string, string][] = [
     [cfg.numberLabel, docNumber],

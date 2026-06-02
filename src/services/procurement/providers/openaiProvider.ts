@@ -10,7 +10,8 @@ export const openaiProcurementProvider: ProcurementCatalogProvider = {
   source: 'openai',
   isAvailable: () => procurementConfig.openai.enabled,
 
-  async search(_parsed: ParsedProcurementQuery): Promise<ProcurementProviderResult | null> {
+  async search(_query: ParsedProcurementQuery): Promise<ProcurementProviderResult | null> {
+    void _query;
     if (!procurementConfig.openai.enabled) return null;
 
     // TODO: POST /chat/completions avec function calling → CatalogItemDTO[]

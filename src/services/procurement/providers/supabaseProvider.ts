@@ -9,7 +9,8 @@ export const supabaseProcurementProvider: ProcurementCatalogProvider = {
   source: 'supabase',
   isAvailable: () => procurementConfig.supabase.enabled,
 
-  async search(_parsed: ParsedProcurementQuery): Promise<ProcurementProviderResult | null> {
+  async search(_query: ParsedProcurementQuery): Promise<ProcurementProviderResult | null> {
+    void _query;
     if (!procurementConfig.supabase.enabled) return null;
 
     // TODO: supabase.from(procurementConfig.supabase.catalogTable).select().textSearch(...)

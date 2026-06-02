@@ -26,7 +26,7 @@ export class HeuristicTextExtractor implements IOcrEngine {
     let rawText = '';
     if (input.mimeType === 'application/pdf') {
       rawText = await this.extractPdfText(input.filePath);
-    } else if (input.mimeType.startsWith('text/')) {
+    } else if (input.mimeType?.startsWith('text/')) {
       rawText = fs.readFileSync(input.filePath, 'utf-8');
     }
 

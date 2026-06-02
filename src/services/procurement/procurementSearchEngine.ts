@@ -202,7 +202,7 @@ export async function runProcurementSearch(rawQuery: string): Promise<Procuremen
         ? 'openai'
         : providerResult.source;
 
-  let results = providerResult.items
+  const results = providerResult.items
     .map((dto) => mapItem(dto, parsed))
     .sort((a, b) => b.scores.composite - a.scores.composite)
     .slice(0, providerResult.resultOrigin === 'real_web' ? WEB_PRODUCT_RESULTS_LIMIT : 12);
