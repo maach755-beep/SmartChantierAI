@@ -1,8 +1,13 @@
-/** Configuration fournisseurs / APIs — brancher via variables d'environnement Vite. */
+/** Configuration fournisseurs / APIs — Ollama par défaut, OpenAI optionnel. */
 
 export const procurementConfig = {
   country: 'France' as const,
   currency: 'EUR' as const,
+  ollama: {
+    enabled: true,
+    textModel: import.meta.env.VITE_OLLAMA_TEXT_MODEL ?? 'llama3.1',
+    visionModel: import.meta.env.VITE_OLLAMA_VISION_MODEL ?? 'llava',
+  },
   openai: {
     enabled: Boolean(import.meta.env.VITE_OPENAI_API_KEY),
     model: import.meta.env.VITE_OPENAI_MODEL ?? 'gpt-4o-mini',

@@ -4,7 +4,8 @@ export const env = {
   dataDir: process.env.DATA_DIR ?? 'server/data',
   defaultTenantId: process.env.DEFAULT_TENANT_ID ?? 'tenant_default',
   ai: {
-    ocrProvider: process.env.OCR_PROVIDER ?? 'heuristic', // heuristic | vision_api
+    /** ollama (default) | heuristic | vision_api — OpenAI optional */
+    ocrProvider: process.env.OCR_PROVIDER ?? 'ollama',
     visionApiUrl: process.env.VISION_API_URL ?? '',
     visionApiKey: process.env.VISION_API_KEY ?? '',
     colorApiUrl: process.env.COLOR_API_URL ?? '',

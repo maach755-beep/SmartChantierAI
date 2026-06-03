@@ -22,6 +22,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/tavily/, ''),
       },
+      '/ollama': {
+        target: 'http://localhost:11434',
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/ollama/, ''),
+      },
     },
   },
 })

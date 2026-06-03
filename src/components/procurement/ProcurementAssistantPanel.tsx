@@ -8,6 +8,7 @@ import { ProcurementResultCard } from '@/components/procurement/ProcurementResul
 import { ProcurementComparisonTable } from '@/components/procurement/ProcurementComparisonTable';
 import { FRENCH_SUPPLIER_NETWORK } from '@/config/france';
 import { procurementConfig } from '@/services/procurement/config';
+import { getOllamaStatus } from '@/services/ai/ollamaClient';
 import {
   getRealWebSearchStatusLabel,
   isRealWebSearchEnabled,
@@ -49,6 +50,13 @@ export function ProcurementAssistantPanel({
   const [actionLoading, setActionLoading] = useState<ActionKey | null>(null);
   const [procurement, setProcurement] = useState<ProcurementSearchResponse | null>(null);
   const [showComparison, setShowComparison] = useState(false);
+  const [ollamaLabel, setOllamaLabel] = useState('…');
+
+  useEffect(() => {
+    void getOllamaStatus().then((s) => {
+      setOllamaLabel(s.online && s.textModel ? 'ON' : 'OFF');
+    });
+  }, []);
 
   useEffect(() => {
     void preloadPdfFonts().catch(() => {
@@ -210,7 +218,11 @@ export function ProcurementAssistantPanel({
               {procurement.resultOrigin === 'real_web'
                 ? t('purchase.sourceWebReal')
                 : procurement.parsed.parsedByAi
-                  ? t('purchase.sourceOpenAi')
+                  ? procurement.source === 'ollama' || procurement.parsed.llmProvider === 'ollama'
+                    ? t('purchase.sourceOllama')
+                    : procurement.parsed.llmProvider === 'openai'
+                      ? t('purchase.sourceOpenAi')
+                      : t('purchase.sourceOllama')
                   : t('purchase.sourceLocal')}
             </p>
             {procurement.webQuery && (
@@ -401,7 +413,8 @@ export function ProcurementAssistantPanel({
 
       <p className="text-[10px] text-slate-600 mt-6 text-center">
         {t('search.architectureNote', {
-          openai: procurementConfig.openai.enabled ? 'ON' : 'OFF',
+          ollama: ollamaLabel,
+          openai: procurementConfig.openai.enabled ? 'ON (opt.)' : 'OFF',
           supabase: procurementConfig.supabase.enabled ? 'ON' : 'OFF',
           api: procurementConfig.supplierApi.enabled ? 'ON' : 'OFF',
         })}

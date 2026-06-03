@@ -10,7 +10,7 @@ import type {
 } from '@/types/procurementSearch';
 import { procurementConfig } from './config';
 import { DEMO_SOURCE_LABEL } from '@/services/realSearch/config';
-import { resolveParsedQuery, generateOpenAiProcurementSummary } from './openaiAnalysis';
+import { resolveParsedQuery, generateLlmProcurementSummary } from './llmAnalysis';
 import { computeCompositeScore } from './scoring';
 import { formatDistance, getDistanceKm } from './supplierMeta';
 import { fetchCatalogFromProviders } from './providers';
@@ -198,9 +198,11 @@ export async function runProcurementSearch(rawQuery: string): Promise<Procuremen
   const source =
     providerResult.resultOrigin === 'real_web'
       ? 'web'
-      : parsed.parsedByAi
-        ? 'openai'
-        : providerResult.source;
+      : parsed.llmProvider === 'ollama'
+        ? 'ollama'
+        : parsed.llmProvider === 'openai'
+          ? 'openai'
+          : providerResult.source;
 
   const results = providerResult.items
     .map((dto) => mapItem(dto, parsed))
@@ -217,14 +219,23 @@ export async function runProcurementSearch(rawQuery: string): Promise<Procuremen
   const deliveryEstimate = buildDeliveryEstimate(results);
 
   const localSummary = buildLocalSummary(parsed, insight, costEstimate, deliveryEstimate);
-  const aiSummary =
-    (await generateOpenAiProcurementSummary(parsed, results, localSummary)) ?? localSummary;
+  const llm = await generateLlmProcurementSummary(parsed, results, localSummary);
+  const aiSummary = llm.fallbackNote ? `${llm.summary}\n\n(${llm.fallbackNote})` : llm.summary;
+
+  const llmLabel =
+    parsed.llmProvider === 'ollama'
+      ? 'Analyse Ollama'
+      : parsed.llmProvider === 'openai'
+        ? 'Analyse OpenAI (optionnel)'
+        : llm.provider === 'ollama'
+          ? 'Synthèse Ollama'
+          : null;
 
   const providerNote =
     providerResult.resultOrigin === 'real_web'
       ? providerResult.note
-      : parsed.parsedByAi
-        ? `Analyse OpenAI — ${providerResult.note}`
+      : llmLabel
+        ? `${llmLabel} — ${providerResult.note}`
         : providerResult.note;
 
   return {

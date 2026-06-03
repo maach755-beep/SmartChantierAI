@@ -2,7 +2,7 @@ import type { ProductCategory, PurchaseQuality } from '@/types/purchaseAssistant
 
 export type ProcurementStockStatus = 'en_stock' | 'stock_faible' | 'sur_commande';
 
-export type ProcurementDataSource = 'demo' | 'web' | 'openai' | 'supabase' | 'supplier_api';
+export type ProcurementDataSource = 'demo' | 'web' | 'ollama' | 'openai' | 'supabase' | 'supplier_api';
 
 export type ProcurementResultOrigin = 'real_web' | 'demo';
 
@@ -29,6 +29,8 @@ export interface ParsedProcurementQuery {
   projectType: ProcurementProjectType;
   usageHint: string;
   parsedByAi: boolean;
+  /** LLM used for query parsing — Ollama default, OpenAI optional */
+  llmProvider?: 'ollama' | 'openai' | null;
 }
 
 export interface ProcurementScoreBreakdown {

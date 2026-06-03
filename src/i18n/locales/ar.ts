@@ -633,7 +633,7 @@ export const ar: TranslationSchema = {
     btnPurchaseOrder: 'إنشاء أمر شراء',
     btnAddDevis: 'إضافة للعرض',
     internalToggle: 'بحث داخل التطبيق',
-    architectureNote: 'OpenAI {{openai}} · Supabase {{supabase}} · API {{api}}',
+    architectureNote: 'Ollama {{ollama}} · OpenAI {{openai}} (اختياري) · Supabase {{supabase}} · API {{api}}',
     noResults: 'لم يتم العثور على نتائج',
     catProjects: 'المشاريع والورش',
     catTasks: 'المهام',

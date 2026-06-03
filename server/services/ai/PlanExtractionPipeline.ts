@@ -10,14 +10,20 @@ import type {
   WallCoveringRecord,
 } from '../../../shared/plan-extraction/types.js';
 import { HeuristicTextExtractor } from './HeuristicTextExtractor.js';
+import { OllamaOcrProvider } from './OllamaOcrProvider.js';
 import { VisionApiOcrProvider } from './VisionApiOcrProvider.js';
 import { ColorDetectionService } from './ColorDetectionService.js';
 import type { IOcrEngine, OcrExtractionInput } from './interfaces.js';
 import { TableGeneratorService } from '../export/TableGeneratorService.js';
 
+function createOcrEngine(): IOcrEngine {
+  if (env.ai.ocrProvider === 'vision_api') return new VisionApiOcrProvider();
+  if (env.ai.ocrProvider === 'heuristic') return new HeuristicTextExtractor();
+  return new OllamaOcrProvider();
+}
+
 export class PlanExtractionPipeline {
-  private ocr: IOcrEngine =
-    env.ai.ocrProvider === 'vision_api' ? new VisionApiOcrProvider() : new HeuristicTextExtractor();
+  private ocr: IOcrEngine = createOcrEngine();
   private colors = new ColorDetectionService();
   private tables = new TableGeneratorService();
 
