@@ -129,6 +129,15 @@ export const en: TranslationSchema = {
     saasSuppliers: 'Suppliers',
     expensiveDevis: 'Above-average quotations',
   },
+  phase2: {
+    ...fr.phase2,
+    siteManagerTitle: 'AI Site Manager',
+    createTask: 'Create task',
+    editTask: 'Edit task',
+    checkIn: 'Check in',
+    checkOut: 'Check out',
+    dailyReport: 'Daily report',
+  },
   saas: {
     ...fr.saas,
     localDbMode: 'Local database active — set VITE_SUPABASE_URL for production.',

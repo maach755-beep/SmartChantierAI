@@ -6,7 +6,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { generateAvenantPdf } from '@/services/exportService';
 import { formatCurrency } from '@/utils/format';
 import type { Modification } from '@/types';
@@ -20,7 +20,7 @@ const statusMap: Record<Modification['status'], { key: string; variant: 'gray' |
 
 export function ModificationsPage() {
   const { t } = useTranslation();
-  const { modifications } = useDemoData();
+  const { modifications } = usePlatformData();
 
   return (
     <div>

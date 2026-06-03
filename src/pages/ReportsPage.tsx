@@ -6,13 +6,13 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { ExportMenu } from '@/components/ui/ExportMenu';
 import { Card } from '@/components/ui/Card';
 import { QuickNav } from '@/components/layout/QuickNav';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { exportToPdf, exportToExcel, exportToCsv } from '@/services/exportService';
 import { formatCurrency } from '@/utils/format';
 
 export function ReportsPage() {
   const { t, i18n } = useTranslation();
-  const { chantiers, risks, modifications, attendance, materials, tasks } = useDemoData();
+  const { chantiers, risks, modifications, attendance, materials, tasks } = usePlatformData();
   const [type, setType] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
   const [chantierId, setChantierId] = useState('');
 

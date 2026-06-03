@@ -1,12 +1,16 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, Plus, Pencil, Trash2, CheckCircle2 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
 import { QuickNav } from '@/components/layout/QuickNav';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
+import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
+import { useToast } from '@/contexts/ToastContext';
+import { createTask, updateTask, deleteTask } from '@/services/saas/phase2Data';
 import { formatCurrency, formatDate } from '@/utils/format';
 import type { Task, TaskPriority, TaskStatus } from '@/types';
 import {
@@ -41,9 +45,24 @@ function taskMatchesSearch(task: Task, q: string): boolean {
   return haystack.includes(q);
 }
 
+const emptyTask = {
+  title: '',
+  chantierId: '',
+  assignee: '',
+  priority: 'medium' as TaskPriority,
+  status: 'todo' as TaskStatus,
+  dueDate: new Date().toISOString().slice(0, 10),
+  estimatedCostHt: 0,
+  lot: 'carrelage' as Task['lot'],
+};
+
 export function TasksPage() {
   const { t } = useTranslation();
-  const { tasks, chantiers } = useDemoData();
+  const { tasks, chantiers, team, refresh } = usePlatformData();
+  const { success } = useToast();
+  const [modal, setModal] = useState<'create' | 'edit' | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [form, setForm] = useState(emptyTask);
   const [searchParams, setSearchParams] = useSearchParams();
   const urlChantier = searchParams.get('chantier') ?? '';
 
@@ -102,11 +121,58 @@ export function TasksPage() {
   const selectClass =
     'w-full bg-btp-900 border border-btp-600/30 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-btp-500';
 
+  const openCreate = () => {
+    setForm({ ...emptyTask, chantierId: chantierFilter || chantiers[0]?.id || '' });
+    setEditId(null);
+    setModal('create');
+  };
+
+  const openEdit = (tk: Task) => {
+    setEditId(tk.id);
+    setForm({
+      title: tk.title,
+      chantierId: tk.chantierId,
+      assignee: tk.assignee,
+      priority: tk.priority,
+      status: tk.status,
+      dueDate: tk.dueDate,
+      estimatedCostHt: tk.estimatedCostHt,
+      lot: tk.lot,
+    });
+    setModal('edit');
+  };
+
+  const save = async () => {
+    const ch = chantiers.find((c) => c.id === form.chantierId);
+    const payload = { ...form, chantierName: ch?.name };
+    if (modal === 'create') await createTask(payload);
+    else if (editId) await updateTask(editId, payload);
+    success(t('notifications.saved'));
+    setModal(null);
+    await refresh();
+  };
+
+  const remove = async (id: string) => {
+    await deleteTask(id);
+    await refresh();
+  };
+
+  const complete = async (tk: Task) => {
+    await updateTask(tk.id, { status: 'done' });
+    await refresh();
+  };
+
   return (
     <div>
       <PageHeader
         title={t('tasks.title')}
         subtitle={t('tasks.subtitleFrance')}
+        actions={
+          <Button onClick={openCreate}>
+            <Plus className="w-4 h-4" />
+            {t('phase2.createTask')}
+          </Button>
+        }
       />
       <QuickNav
         links={[
@@ -279,6 +345,25 @@ export function TasksPage() {
                 </span>
               ),
             },
+            {
+              key: 'id',
+              header: t('common.actions'),
+              render: (tk) => (
+                <div className="flex gap-1">
+                  {tk.status !== 'done' && (
+                    <Button size="sm" variant="ghost" onClick={() => void complete(tk)}>
+                      <CheckCircle2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={() => openEdit(tk)}>
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button size="sm" variant="danger" onClick={() => void remove(tk.id)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ),
+            },
           ]}
         />
       </div>
@@ -316,6 +401,35 @@ export function TasksPage() {
           ))
         )}
       </ul>
+
+      <Modal open={modal !== null} onClose={() => setModal(null)} title={modal === 'create' ? t('phase2.createTask') : t('phase2.editTask')}>
+        <div className="space-y-3">
+          <input className={selectClass} placeholder={t('tasks.name')} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          <select className={selectClass} value={form.chantierId} onChange={(e) => setForm({ ...form, chantierId: e.target.value })}>
+            {chantiers.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <select className={selectClass} value={form.assignee} onChange={(e) => setForm({ ...form, assignee: e.target.value })}>
+            <option value="">—</option>
+            {team.map((m) => (
+              <option key={m.id} value={m.name}>{m.name}</option>
+            ))}
+          </select>
+          <input type="date" className={selectClass} value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
+          <select className={selectClass} value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value as TaskPriority })}>
+            {ALL_TASK_PRIORITIES.map((p) => (
+              <option key={p} value={p}>{t(TASK_PRIORITY_I18N[p])}</option>
+            ))}
+          </select>
+          <select className={selectClass} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as TaskStatus })}>
+            {ALL_TASK_STATUSES.map((s) => (
+              <option key={s} value={s}>{t(TASK_STATUS_I18N[s])}</option>
+            ))}
+          </select>
+          <Button className="w-full" onClick={() => void save()}>{t('common.save')}</Button>
+        </div>
+      </Modal>
     </div>
   );
 }

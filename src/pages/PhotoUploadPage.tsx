@@ -9,11 +9,13 @@ import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { QuickNav } from '@/components/layout/QuickNav';
 import { PhotoTabs, type PhotoTabId } from '@/components/photos/PhotoTabs';
-import { useDemoData } from '@/hooks/useDemoData';
-import { dataStore } from '@/services/dataStore';
+import { usePlatformData } from '@/hooks/usePlatformData';
+import { useAuth } from '@/contexts/AuthContext';
+import { uploadSitePhoto, createPhotoAlbum } from '@/services/saas/phase2Data';
+import { updateProject } from '@/services/saas/platform';
 import { generatePhotoReportPdf } from '@/services/photoReportService';
 import { useLanguage } from '@/hooks/useLanguage';
-import type { PhotoPhase, SitePhoto } from '@/types';
+import type { PhotoPhase, PhotoTimelineEntry, SitePhoto } from '@/types';
 import { formatPercent } from '@/utils/format';
 
 const phaseVariant: Record<PhotoPhase, 'blue' | 'green' | 'orange'> = {
@@ -25,7 +27,8 @@ const phaseVariant: Record<PhotoPhase, 'blue' | 'green' | 'orange'> = {
 export function PhotoUploadPage() {
   const { t } = useTranslation();
   const { lang } = useLanguage();
-  const { photos, albums, chantiers, refresh } = useDemoData();
+  const { photos, albums, chantiers, refresh } = usePlatformData();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const chantierFilter = searchParams.get('chantier') ?? chantiers[0]?.id ?? '';
   const tab = (searchParams.get('tab') as PhotoTabId) || 'gallery';
@@ -44,10 +47,21 @@ export function PhotoUploadPage() {
     () => photos.filter((p) => p.chantierId === chantierFilter),
     [photos, chantierFilter]
   );
-  const timeline = useMemo(
-    () => dataStore.getPhotoTimeline(chantierFilter),
-    [chantierFilter]
-  );
+  const timeline = useMemo((): PhotoTimelineEntry[] => {
+    return projectPhotos
+      .slice()
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .map((p) => ({
+        id: p.id,
+        chantierId: p.chantierId,
+        date: p.date,
+        title: p.caption ?? p.room,
+        photoId: p.id,
+        photoUrl: p.url,
+        phase: p.phase,
+        type: 'upload' as const,
+      }));
+  }, [projectPhotos]);
 
   const setTab = (id: PhotoTabId) => {
     const next = new URLSearchParams(searchParams);
@@ -56,38 +70,34 @@ export function PhotoUploadPage() {
     setSearchParams(next);
   };
 
-  const upload = (file: File) => {
+  const upload = async (file: File) => {
     if (!ch) return;
-    const url = URL.createObjectURL(file);
-    const photo = dataStore.addPhoto({
-      chantierId: ch.id,
-      chantierName: ch.name,
+    await uploadSitePhoto({
+      projectId: ch.id,
+      projectName: ch.name,
+      file,
       room: t('photos.defaultRoom'),
-      url,
-      caption: file.name,
       phase: uploadPhase,
-      uploadedBy: ch.manager,
-      date: new Date().toISOString(),
-      tags: ['upload', uploadPhase],
-      fileSize: `${Math.round(file.size / 1024)} Ko`,
       albumId: selectedAlbum || undefined,
+      uploadedBy: ch.manager,
+      userId: user?.id,
     });
-    if (selectedAlbum) dataStore.addPhotoToAlbum(selectedAlbum, photo.id);
-    dataStore.updateChantierProgressFromPhotos(ch.id, 1);
-    refresh();
+    const nextProgress = Math.min(100, ch.progress + 1);
+    await updateProject(ch.id, { progress: nextProgress });
+    await refresh();
   };
 
-  const createAlbum = () => {
+  const createAlbum = async () => {
     if (!ch || !newAlbumName.trim()) return;
-    dataStore.createPhotoAlbum({
+    await createPhotoAlbum({
+      projectId: ch.id,
       name: newAlbumName.trim(),
-      chantierId: ch.id,
-      chantierName: ch.name,
       description: t('photos.albumDescDefault'),
+      projectName: ch.name,
     });
     setNewAlbumName('');
     setAlbumModal(false);
-    refresh();
+    await refresh();
   };
 
   const exportPdf = () => {
@@ -96,7 +106,7 @@ export function PhotoUploadPage() {
       chantier: ch,
       photos: projectPhotos,
       albums: projectAlbums,
-      comparisons: dataStore.getPhotoComparisons().filter((c) => c.chantierId === ch.id),
+      comparisons: [],
       lang,
     });
   };

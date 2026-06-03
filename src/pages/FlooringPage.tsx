@@ -4,13 +4,13 @@ import { PageQuickNav } from '@/components/layout/PageQuickNav';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { EditableTable } from '@/components/ui/EditableTable';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { dataStore } from '@/services/dataStore';
 import type { FlooringRow } from '@/types';
 
 export function FlooringPage() {
   const { t } = useTranslation();
-  const { flooring, refresh } = useDemoData();
+  const { flooring, refresh } = usePlatformData();
   const rowsKey = flooring.map((f) => f.id).join('|');
 
   const persist = (rows: Record<string, string | number>[]) => {

@@ -92,4 +92,5 @@ export type TranslationSchema = {
   settings: Record<string, string>;
   notifications: Record<string, string>;
   saas: Record<string, string>;
+  phase2: Record<string, string>;
 };

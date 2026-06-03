@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { dataStore } from '@/services/dataStore';
 import { analyzeFieldPhoto } from '@/services/fakeAi';
 import { formatCurrency } from '@/utils/format';
@@ -15,7 +15,7 @@ import type { FieldUpdate } from '@/types';
 
 export function FieldToOfficePage() {
   const { t } = useTranslation();
-  const { fieldUpdates, chantiers, refresh } = useDemoData();
+  const { fieldUpdates, chantiers, refresh } = usePlatformData();
   const [updates, setUpdates] = useState(fieldUpdates);
   const [chantierId, setChantierId] = useState(chantiers[0]?.id ?? '');
   const [comment, setComment] = useState('');

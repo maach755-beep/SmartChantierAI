@@ -8,12 +8,18 @@
 - Dashboard metrics from database
 - PDF: devis, bon de commande, rapport chantier, fiche technique
 
-## Phase 2 — Production hardening (next)
+## Phase 2 — Operations platform (complete)
+
+- Tasks, attendance, photos, team, materials, notifications — **done**
+- Advanced dashboard + AI site manager — **done**
+- See `PHASE2_COMPLETION_REPORT.md`
+
+## Phase 3 — Production hardening (next)
 
 | Item | Priority |
 |------|----------|
-| Migrate tasks, photos, attendance to Supabase tables | High |
 | Real-time subscriptions (Supabase Realtime) on dashboard | High |
+| Documents + modifications persistence | High |
 | Row-level security per `company_id` / tenant | High |
 | Stripe billing + plans | Medium |
 | Email notifications (Resend / Supabase) | Medium |

@@ -13,13 +13,13 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { QuickNav } from '@/components/layout/QuickNav';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { runFullSiteAnalysis } from '@/services/fakeAi';
 import type { AiAnalysisResult } from '@/types';
 
 export function AiAnalysisPage() {
   const { t } = useTranslation();
-  const { chantiers } = useDemoData();
+  const { chantiers } = usePlatformData();
   const [chantierId, setChantierId] = useState(chantiers[0]?.id ?? '');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiAnalysisResult | null>(null);

@@ -114,8 +114,35 @@ erDiagram
 | id | uuid PK | |
 | user_id | uuid FK | |
 | title, body | text | |
+| type | text | delay, risk, material, system, … |
 | read | boolean | |
-| metadata | jsonb | |
+| href | text | Deep link |
+| metadata | jsonb | chantierId, level, auto-generated flag |
+
+### `employees` (Phase 2)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid PK | |
+| name | text | |
+| trade, role_type, team | text | |
+| project_id | uuid FK | |
+| active, hours_this_week | | |
+
+### `attendance_records` (Phase 2)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid PK | |
+| employee_id, project_id | uuid FK | |
+| work_date | date | |
+| check_in, check_out | timestamptz | |
+| present, absent, sick, leave | boolean | |
+| hours_worked | numeric | |
+
+### `site_photos` / `photo_albums` (Phase 2)
+
+Photos stored in `site_photos` with optional `storage_path` (Supabase bucket `documents`). Albums keep `photo_ids` jsonb array.
 
 ## Application mapping
 

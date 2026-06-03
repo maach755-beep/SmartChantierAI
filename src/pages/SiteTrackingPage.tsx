@@ -8,10 +8,10 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { useDemoData } from '@/hooks/useDemoData';
-import { dataStore } from '@/services/dataStore';
+import { usePlatformData } from '@/hooks/usePlatformData';
+import { createProject } from '@/services/saas/platform';
 import { formatCurrency, formatPercent } from '@/utils/format';
-import type { Chantier, ProjectStatus } from '@/types';
+import type { Chantier, ProjectStatus, TimelineEvent } from '@/types';
 
 const emptyForm = {
   name: '',
@@ -27,7 +27,7 @@ type SiteTab = 'all' | 'active' | 'delayed' | 'at_risk';
 
 export function SiteTrackingPage() {
   const { t } = useTranslation();
-  const { chantiers, timeline, refresh } = useDemoData();
+  const { chantiers, tasks, photos, refresh } = usePlatformData();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [tab, setTab] = useState<SiteTab>('all');
@@ -40,13 +40,35 @@ export function SiteTrackingPage() {
     return chantiers.filter((c) => c.status === 'at_risk');
   }, [chantiers, tab]);
 
-  const timelineEvents = useMemo(() => {
+  const timelineEvents = useMemo((): TimelineEvent[] => {
     const id = timelineChantier || chantiers[0]?.id;
-    return timeline.filter((e) => e.chantierId === id);
-  }, [timeline, timelineChantier, chantiers]);
+    if (!id) return [];
+    const fromTasks: TimelineEvent[] = tasks
+      .filter((t) => t.chantierId === id)
+      .map((t) => ({
+        id: t.id,
+        chantierId: t.chantierId,
+        date: t.dueDate,
+        title: t.title,
+        type: 'task' as const,
+        status: t.status === 'done' || t.status === 'validated' ? 'done' : t.dueDate < new Date().toISOString().slice(0, 10) ? 'late' : 'pending',
+      }));
+    const fromPhotos: TimelineEvent[] = photos
+      .filter((p) => p.chantierId === id)
+      .slice(0, 5)
+      .map((p) => ({
+        id: p.id,
+        chantierId: p.chantierId,
+        date: p.date.slice(0, 10),
+        title: p.caption ?? 'Photo chantier',
+        type: 'inspection' as const,
+        status: 'done' as const,
+      }));
+    return [...fromTasks, ...fromPhotos].sort((a, b) => b.date.localeCompare(a.date));
+  }, [tasks, photos, timelineChantier, chantiers]);
 
-  const saveChantier = () => {
-    dataStore.createProject({
+  const saveChantier = async () => {
+    await createProject({
       name: form.name || 'Nouveau chantier',
       client: form.client,
       address: form.address,
@@ -60,7 +82,7 @@ export function SiteTrackingPage() {
       riskLevel: form.delayDays > 7 ? 'red' : form.delayDays > 3 ? 'orange' : 'green',
       status: (form.delayDays > 5 ? 'delayed' : 'active') as ProjectStatus,
     });
-    refresh();
+    await refresh();
     setShowForm(false);
     setForm(emptyForm);
   };

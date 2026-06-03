@@ -6,13 +6,13 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { UploadZone } from '@/components/ui/UploadZone';
 import { LoadingBlock } from '@/components/ui/LoadingBlock';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { analyzeSitePhotos, listJournalHistory } from '@/services/siteJournal/engine';
 import type { SiteJournalEntry } from '@/types/siteJournal';
 
 export function SiteJournalPage() {
   const { t } = useTranslation();
-  const { chantiers } = useDemoData();
+  const { chantiers } = usePlatformData();
   const [chantierId, setChantierId] = useState(chantiers[0]?.id ?? '');
   const [photoCount, setPhotoCount] = useState(0);
   const [loading, setLoading] = useState(false);

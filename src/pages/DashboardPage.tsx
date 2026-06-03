@@ -45,19 +45,20 @@ import { formatCurrency } from '@/utils/format';
 import { getSituationDashboardSummary } from '@/services/situationAnalysis/engine';
 import { getPurchaseDashboardSummary } from '@/services/purchaseAssistant/aiRecommendationService';
 import { Button } from '@/components/ui/Button';
+import { SiteManagerPanel } from '@/components/dashboard/SiteManagerPanel';
+import { Users, ListTodo, HeartPulse } from 'lucide-react';
 
 const RISK_COLORS = { green: '#22c55e', orange: '#f59e0b', red: '#ef4444' };
 
 export function DashboardPage() {
   const { t } = useTranslation();
-  const { chantiers, modifications, attendance, suppliers, risks, metrics, loading, isLiveDb } =
+  const { chantiers, attendance, suppliers, risks, metrics, loading, isLiveDb, siteInsights } =
     usePlatformData();
 
   const active = metrics?.activeProjects ?? chantiers.filter((c) => c.status === 'active').length;
   const delayed = metrics?.delayedProjects ?? chantiers.filter((c) => c.status === 'delayed').length;
   const atRisk = metrics?.atRiskProjects ?? chantiers.filter((c) => c.status === 'at_risk').length;
-  const pendingMods = modifications.filter((m) => m.status === 'pending').length;
-  const absent = attendance.filter((a) => a.absent).length;
+  const absent = metrics?.absentToday ?? attendance.filter((a) => a.absent).length;
   const overBudget =
     chantiers.filter((c) => c.budgetConsumed > c.budgetPlanned * 0.95).length;
   const lateSup = suppliers.filter((s) => s.lateDeliveries > 2).length;
@@ -120,7 +121,13 @@ export function DashboardPage() {
         ]}
       />
 
-      <SectionTitle title={t('dashboard.saasSection')} />
+      <SectionTitle title={t('phase2.advancedKpi')} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <StatCard title={t('phase2.healthScore')} value={`${metrics?.avgHealthScore ?? 0}%`} icon={HeartPulse} variant="success" />
+        <StatCard title={t('phase2.openTasks')} value={metrics?.openTasks ?? 0} icon={ListTodo} />
+        <StatCard title={t('phase2.workforce')} value={metrics?.presentToday ?? 0} icon={Users} variant="default" />
+        <StatCard title={t('phase2.materialAlerts')} value={metrics?.materialShortages ?? 0} icon={Package} variant="warning" />
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
         <StatCard title={t('dashboard.saasQuotations')} value={metrics?.quotationsCount ?? 0} icon={FileEdit} />
         <StatCard title={t('dashboard.saasPO')} value={metrics?.purchaseOrdersCount ?? 0} icon={ShoppingCart} />
@@ -132,6 +139,8 @@ export function DashboardPage() {
           variant="warning"
         />
       </div>
+
+      <SiteManagerPanel insights={siteInsights} />
 
       <SectionTitle title={t('dashboard.situationSection')} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
@@ -198,12 +207,12 @@ export function DashboardPage() {
         <StatCard title={t('dashboard.activeSites')} value={active} icon={Building2} variant="default" />
         <StatCard title={t('dashboard.delayedSites')} value={delayed} icon={Clock} variant="warning" />
         <StatCard title={t('dashboard.atRiskSites')} value={atRisk} icon={AlertTriangle} variant="danger" />
-        <StatCard title={t('dashboard.pendingMods')} value={pendingMods} icon={FileEdit} />
+        <StatCard title={t('phase2.overdueTasks')} value={metrics?.overdueTasks ?? 0} icon={FileEdit} variant="warning" />
       </div>
 
       <SectionTitle title={t('dashboard.riskSection')} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-        <StatCard title={t('dashboard.missingMaterials')} value={7} icon={Package} variant="warning" />
+        <StatCard title={t('dashboard.missingMaterials')} value={metrics?.materialShortages ?? 0} icon={Package} variant="warning" />
         <StatCard title={t('dashboard.criticalRisks')} value={redRisks} icon={AlertTriangle} variant="danger" />
         <StatCard title={t('dashboard.moderateRisks')} value={orangeRisks} icon={Activity} variant="warning" />
         <StatCard title={t('dashboard.lateSuppliers')} value={lateSup} icon={Truck} variant="warning" />

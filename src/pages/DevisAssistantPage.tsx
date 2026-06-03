@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { StatCard } from '@/components/ui/StatCard';
 import { LoadingBlock } from '@/components/ui/LoadingBlock';
 import { ImportProcurementToDevis } from '@/components/devis/ImportProcurementToDevis';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { useToast } from '@/contexts/ToastContext';
 import { APP_COUNTRY, APP_CURRENCY } from '@/config/france';
 import {
@@ -41,7 +41,7 @@ const inputClass =
 export function DevisAssistantPage() {
   const { t } = useTranslation();
   const { success, error } = useToast();
-  const { chantiers } = useDemoData();
+  const { chantiers } = usePlatformData();
   const [doc, setDoc] = useState<ProfessionalDevisDocument>(() => createEmptyDevisDocument());
   const [chantierId, setChantierId] = useState(chantiers[0]?.id ?? '');
   const [filling, setFilling] = useState(false);

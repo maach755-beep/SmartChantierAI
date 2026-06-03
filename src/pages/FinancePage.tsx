@@ -3,7 +3,7 @@ import { PageQuickNav } from '@/components/layout/PageQuickNav';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { formatCurrency } from '@/utils/format';
 import type { Chantier, FinancialStatus } from '@/types';
 
@@ -16,7 +16,7 @@ function getFinancialStatus(c: Chantier): FinancialStatus {
 
 export function FinancePage() {
   const { t } = useTranslation();
-  const { chantiers } = useDemoData();
+  const { chantiers } = usePlatformData();
 
   const rows = chantiers.map((c) => {
     const material = c.budgetConsumed * 0.45;

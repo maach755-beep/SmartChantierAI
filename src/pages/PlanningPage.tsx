@@ -4,12 +4,12 @@ import { PageQuickNav } from '@/components/layout/PageQuickNav';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { formatDate } from '@/utils/format';
 
 export function PlanningPage() {
   const { t } = useTranslation();
-  const { planning } = useDemoData();
+  const { planning } = usePlatformData();
 
   const maxEnd = Math.max(...planning.map((p) => new Date(p.end).getTime()));
   const minStart = Math.min(...planning.map((p) => new Date(p.start).getTime()));

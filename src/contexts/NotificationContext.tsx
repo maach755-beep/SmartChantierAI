@@ -1,5 +1,12 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import { dataStore } from '@/services/dataStore';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  listNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+  syncSystemNotifications,
+  LOCAL_USER_ID,
+} from '@/services/saas/phase2Data';
+import { useAuth } from '@/contexts/AuthContext';
 import type { AppNotification } from '@/types';
 
 type NotificationContextValue = {
@@ -15,31 +22,36 @@ type NotificationContextValue = {
 const NotificationContext = createContext<NotificationContextValue | null>(null);
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
-  const [version, setVersion] = useState(0);
+  const { user } = useAuth();
+  const userId = user?.id ?? LOCAL_USER_ID;
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [panelOpen, setPanelOpen] = useState(false);
-  const refresh = useCallback(() => setVersion((v) => v + 1), []);
+
+  const refresh = useCallback(async () => {
+    await syncSystemNotifications(userId);
+    setNotifications(await listNotifications(userId));
+  }, [userId]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   const value = useMemo(() => {
-    dataStore.init();
-    void version;
-    const notifications = dataStore.getNotifications();
     const unreadCount = notifications.filter((n) => !n.read).length;
     return {
       notifications,
       unreadCount,
-      refresh,
+      refresh: () => void refresh(),
       markRead: (id: string) => {
-        dataStore.markNotificationRead(id);
-        refresh();
+        void markNotificationRead(id, userId).then(() => refresh());
       },
       markAllRead: () => {
-        dataStore.markAllNotificationsRead();
-        refresh();
+        void markAllNotificationsRead(userId).then(() => refresh());
       },
       panelOpen,
       setPanelOpen,
     };
-  }, [version, refresh, panelOpen]);
+  }, [notifications, refresh, userId, panelOpen]);
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
 }

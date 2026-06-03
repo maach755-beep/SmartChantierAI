@@ -287,7 +287,7 @@ export async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
   const avgQuotationTtc = totals.length ? totals.reduce((a, b) => a + b, 0) / totals.length : 0;
   const expensiveQuotations = quotations.filter((q) => avgQuotationTtc > 0 && Number(q.total_ttc) > avgQuotationTtc * 1.25).length;
 
-  return {
+  const base = {
     activeProjects: active,
     delayedProjects: delayed,
     atRiskProjects: atRisk,
@@ -296,11 +296,24 @@ export async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
     quotationsCount: quotations.length,
     purchaseOrdersCount: purchaseOrders.length,
     suppliersCount: suppliers.length,
-    openTasks: 0,
     expensiveQuotations,
     avgQuotationTtc,
     dataSource: isSupabaseConfigured ? 'supabase' : 'local',
-  };
+  } as Omit<
+    DashboardMetrics,
+    | 'openTasks'
+    | 'completedTasks'
+    | 'overdueTasks'
+    | 'presentToday'
+    | 'absentToday'
+    | 'workforceTotal'
+    | 'avgHealthScore'
+    | 'materialShortages'
+    | 'unreadNotifications'
+  >;
+
+  const { fetchPhase2DashboardExtras } = await import('./phase2Data');
+  return fetchPhase2DashboardExtras(base);
 }
 
 export type ExpensiveQuotationAlert = {

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { LoadingBlock } from '@/components/ui/LoadingBlock';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { runDirectorAssistant } from '@/services/directorAssistant/engine';
 import { getDirectorHistory, saveDirectorAnalysis } from '@/services/directorAssistant/storage';
 import type { DirectorAssistantResult, DirectorPriority } from '@/types/directorAssistant';
@@ -21,7 +21,7 @@ const PRIORITY_VARIANT: Record<DirectorPriority, 'red' | 'orange' | 'green' | 'g
 
 export function DirectorAssistantPage() {
   const { t } = useTranslation();
-  const { chantiers } = useDemoData();
+  const { chantiers } = usePlatformData();
   const [chantierId, setChantierId] = useState(chantiers[0]?.id ?? '');
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);

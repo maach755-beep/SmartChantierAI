@@ -4,7 +4,8 @@ import { AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { computeDelayDetection } from '@/services/delayDetection/engine';
+import { usePlatformData } from '@/hooks/usePlatformData';
+import { computeDelayDetectionFromData } from '@/services/delayDetection/engine';
 import type { DelayStatus } from '@/types/delayDetection';
 
 const STATUS_STYLE: Record<DelayStatus, string> = {
@@ -15,7 +16,11 @@ const STATUS_STYLE: Record<DelayStatus, string> = {
 
 export function DelayDetectionPage() {
   const { t } = useTranslation();
-  const results = useMemo(() => computeDelayDetection(), []);
+  const { chantiers, tasks, materials } = usePlatformData();
+  const results = useMemo(
+    () => computeDelayDetectionFromData(chantiers, tasks, materials),
+    [chantiers, tasks, materials]
+  );
 
   return (
     <div>
@@ -38,14 +43,6 @@ export function DelayDetectionPage() {
                 <p className="text-slate-500 text-xs">{t('delay.days')}</p>
                 <p className="text-white font-medium">{r.delayDays} j</p>
               </div>
-              <div>
-                <p className="text-slate-500 text-xs">{t('delay.progress')}</p>
-                <p className="text-slate-300">{r.progressPercent}%</p>
-              </div>
-              <div>
-                <p className="text-slate-500 text-xs">{t('delay.expected')}</p>
-                <p className="text-slate-300">{r.expectedProgressPercent}%</p>
-              </div>
             </div>
             <Badge variant={r.status === 'red' ? 'red' : r.status === 'orange' ? 'orange' : 'green'}>
               <AlertTriangle className="w-3 h-3 inline me-1" />
@@ -58,7 +55,7 @@ export function DelayDetectionPage() {
               ))}
             </ul>
             <p className="text-xs text-slate-500 mt-3 font-medium">{t('delay.recovery')}</p>
-            <ul className="text-xs text-emerald-300/80 mt-1 list-disc list-inside">
+            <ul className="text-xs text-cyan-400/90 mt-1 list-disc list-inside">
               {r.recoveryActions.map((a) => (
                 <li key={a}>{a}</li>
               ))}

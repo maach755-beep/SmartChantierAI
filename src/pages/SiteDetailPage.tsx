@@ -6,7 +6,7 @@ import { projectFilterLink } from '@/config/pageLinks';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { computeChantierHealth } from '@/utils/healthScore';
 import { formatCurrency, formatDate, formatPercent } from '@/utils/format';
 import { TASK_STATUS_I18N, TASK_STATUS_VARIANT } from '@/utils/taskLabels';
@@ -15,7 +15,7 @@ import type { TaskStatus } from '@/types';
 export function SiteDetailPage() {
   const { id } = useParams();
   const { t } = useTranslation();
-  const { chantiers, rooms, tasks, risks } = useDemoData();
+  const { chantiers, rooms, tasks, risks } = usePlatformData();
   const chantier = chantiers.find((c) => c.id === id);
   const siteRooms = rooms.filter((r) => r.chantierId === id);
   const siteTasks = tasks.filter((tk) => tk.chantierId === id);

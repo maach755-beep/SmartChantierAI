@@ -5,13 +5,13 @@ import { PageQuickNav } from '@/components/layout/PageQuickNav';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { computeCompliance } from '@/utils/compliance';
 import { formatCurrency } from '@/utils/format';
 
 export function ContractPage() {
   const { t } = useTranslation();
-  const { chantiers, modifications, tasks } = useDemoData();
+  const { chantiers, modifications, tasks } = usePlatformData();
   const [selectedId, setSelectedId] = useState(chantiers[0]?.id ?? '');
   const ch = chantiers.find((c) => c.id === selectedId);
   const compliance = ch ? computeCompliance(ch, tasks, modifications) : null;

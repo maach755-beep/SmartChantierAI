@@ -7,7 +7,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { QuickNav } from '@/components/layout/QuickNav';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import type { MaterialStockStatus } from '@/types';
 
 const statusVariant: Record<MaterialStockStatus, 'green' | 'orange' | 'red' | 'blue'> = {
@@ -21,7 +21,7 @@ type MatTab = 'inventory' | 'missing' | 'requests' | 'alerts';
 
 export function MaterialsPage() {
   const { t } = useTranslation();
-  const { materials, materialRequests, chantiers } = useDemoData();
+  const { materials, materialRequests, chantiers } = usePlatformData();
   const [searchParams, setSearchParams] = useSearchParams();
   const chantierFilter = searchParams.get('chantier') ?? '';
   const [tab, setTab] = useState<MatTab>('inventory');

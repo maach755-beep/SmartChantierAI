@@ -7,12 +7,12 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { QuickNav } from '@/components/layout/QuickNav';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import type { TeamRoleType } from '@/types';
 
 export function TeamPage() {
   const { t } = useTranslation();
-  const { team, chantiers, attendance } = useDemoData();
+  const { team, chantiers, attendance } = usePlatformData();
   const [teamFilter, setTeamFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState<TeamRoleType | 'all'>('all');
 

@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { dataStore } from '@/services/dataStore';
 import type { DocumentType } from '@/types';
 
@@ -18,7 +18,7 @@ const typeIcons: Record<DocumentType, React.ComponentType<{ className?: string }
 
 export function DocumentsPage() {
   const { t } = useTranslation();
-  const { documents, chantiers, refresh } = useDemoData();
+  const { documents, chantiers, refresh } = usePlatformData();
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<DocumentType | 'all'>('all');
   const [chantierFilter, setChantierFilter] = useState('');

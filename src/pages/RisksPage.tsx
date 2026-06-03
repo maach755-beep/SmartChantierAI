@@ -5,14 +5,14 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { computeChantierHealth } from '@/utils/healthScore';
 import { formatCurrency } from '@/utils/format';
 import type { Risk } from '@/types';
 
 export function RisksPage() {
   const { t } = useTranslation();
-  const { risks, chantiers } = useDemoData();
+  const { risks, chantiers } = usePlatformData();
   const [selectedId, setSelectedId] = useState(chantiers[0]?.id ?? '');
   const chantier = chantiers.find((c) => c.id === selectedId);
   const siteRisks = risks.filter((r) => r.chantierId === selectedId);

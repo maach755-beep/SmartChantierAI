@@ -7,14 +7,14 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { useDemoData } from '@/hooks/useDemoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { dataStore } from '@/services/dataStore';
 import { analyzePhotoPair } from '@/services/photoAi';
 import type { PhotoComparisonResult, SitePhoto } from '@/types';
 
 export function PhotoComparisonPage() {
   const { t } = useTranslation();
-  const { photos, chantiers, refresh } = useDemoData();
+  const { photos, chantiers, refresh } = usePlatformData();
   const [searchParams] = useSearchParams();
   const chantierId = searchParams.get('chantier') ?? chantiers[0]?.id ?? '';
   const ch = chantiers.find((c) => c.id === chantierId);
