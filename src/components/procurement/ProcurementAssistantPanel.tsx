@@ -15,6 +15,7 @@ import {
   TAVILY_UNCONFIGURED_MESSAGE,
 } from '@/services/realSearch/config';
 import { runProcurementSearch } from '@/services/procurement/procurementSearchEngine';
+import { detectExpensiveQuotations, type ExpensiveQuotationAlert } from '@/services/saas/platform';
 import {
   exportProcurementComparison,
   exportProcurementPurchaseOrder,
@@ -51,6 +52,11 @@ export function ProcurementAssistantPanel({
   const [procurement, setProcurement] = useState<ProcurementSearchResponse | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [ollamaLabel, setOllamaLabel] = useState('…');
+  const [expensiveAlerts, setExpensiveAlerts] = useState<ExpensiveQuotationAlert[]>([]);
+
+  useEffect(() => {
+    void detectExpensiveQuotations().then(setExpensiveAlerts).catch(() => setExpensiveAlerts([]));
+  }, []);
 
   useEffect(() => {
     void getOllamaStatus().then((s) => {
@@ -175,6 +181,19 @@ export function ProcurementAssistantPanel({
             {procurement?.providerNote ??
               (isRealWebSearchEnabled() ? t('search.providerWebReady') : TAVILY_UNCONFIGURED_MESSAGE)}
           </p>
+        </Card>
+      )}
+
+      {expensiveAlerts.length > 0 && (
+        <Card className="mb-4 border-amber-500/30">
+          <p className="text-sm text-amber-300 font-medium mb-2">{t('saas.expensiveAlerts')}</p>
+          <ul className="text-xs text-slate-400 space-y-1">
+            {expensiveAlerts.slice(0, 5).map((a) => (
+              <li key={a.quotation.id}>
+                {a.quotation.number} — +{a.percentAboveAvg}% — {a.cheaperAlternativeHint}
+              </li>
+            ))}
+          </ul>
         </Card>
       )}
 

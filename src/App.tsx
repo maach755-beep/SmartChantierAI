@@ -70,6 +70,12 @@ const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then((m) => 
 const ForgotPasswordPage = lazy(() =>
   import('@/pages/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage }))
 );
+const QuotationsManagePage = lazy(() =>
+  import('@/pages/saas/QuotationsManagePage').then((m) => ({ default: m.QuotationsManagePage }))
+);
+const PurchaseOrdersManagePage = lazy(() =>
+  import('@/pages/saas/PurchaseOrdersManagePage').then((m) => ({ default: m.PurchaseOrdersManagePage }))
+);
 
 function Lazy({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<PageLoader />}>{children}</Suspense>;
@@ -108,6 +114,8 @@ export default function App() {
                       <Route path="/contrat" element={<Lazy><ContractPage /></Lazy>} />
                       <Route path="/pointage" element={<Lazy><AttendancePage /></Lazy>} />
                       <Route path="/fournisseurs" element={<Lazy><SuppliersPage /></Lazy>} />
+                      <Route path="/devis-gestion" element={<Lazy><QuotationsManagePage /></Lazy>} />
+                      <Route path="/bons-commande" element={<Lazy><PurchaseOrdersManagePage /></Lazy>} />
                       <Route path="/finances" element={<Lazy><FinancePage /></Lazy>} />
                       <Route path="/planning" element={<Lazy><PlanningPage /></Lazy>} />
                       <Route path="/terrain" element={<Lazy><FieldToOfficePage /></Lazy>} />

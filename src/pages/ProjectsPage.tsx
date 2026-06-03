@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { QuickNav } from '@/components/layout/QuickNav';
 import { projectFilterLink } from '@/config/pageLinks';
-import { useDemoData } from '@/hooks/useDemoData';
-import { dataStore } from '@/services/dataStore';
+import { usePlatformData } from '@/hooks/usePlatformData';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
+import { createProject, updateProject, deleteProject } from '@/services/saas/platform';
 import { formatCurrency, formatPercent } from '@/utils/format';
 import type { Chantier, ProjectStatus, RiskLevel } from '@/types';
 
@@ -32,10 +34,13 @@ const emptyForm = {
 
 export function ProjectsPage() {
   const { t } = useTranslation();
-  const { chantiers, refresh } = useDemoData();
+  const { chantiers, refresh, isLiveDb } = usePlatformData();
+  const { user } = useAuth();
+  const { success, error } = useToast();
   const [modal, setModal] = useState<'create' | 'edit' | 'delete' | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
 
   const selected = chantiers.find((c) => c.id === selectedId);
 
@@ -70,29 +75,57 @@ export function ProjectsPage() {
     setModal('delete');
   };
 
-  const saveCreate = () => {
-    dataStore.createProject({
-      ...form,
-      budgetConsumed: Math.round(form.budgetPlanned * (form.progress / 100) * 0.6),
-    });
-    refresh();
-    setModal(null);
+  const saveCreate = async () => {
+    setSaving(true);
+    try {
+      await createProject(
+        {
+          ...form,
+          budgetConsumed: Math.round(form.budgetPlanned * (form.progress / 100) * 0.6),
+        },
+        user?.id
+      );
+      success(t('notifications.saved'));
+      await refresh();
+      setModal(null);
+    } catch (e) {
+      error(e instanceof Error ? e.message : 'Erreur');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!selectedId) return;
-    dataStore.updateProject(selectedId, {
-      ...form,
-      budgetConsumed: form.budgetConsumed || Math.round(form.budgetPlanned * (form.progress / 100) * 0.7),
-    });
-    refresh();
-    setModal(null);
+    setSaving(true);
+    try {
+      await updateProject(selectedId, {
+        ...form,
+        budgetConsumed: form.budgetConsumed || Math.round(form.budgetPlanned * (form.progress / 100) * 0.7),
+      });
+      success(t('notifications.saved'));
+      await refresh();
+      setModal(null);
+    } catch (e) {
+      error(e instanceof Error ? e.message : 'Erreur');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const confirmDelete = () => {
-    if (selectedId) dataStore.deleteProject(selectedId);
-    refresh();
-    setModal(null);
+  const confirmDelete = async () => {
+    if (!selectedId) return;
+    setSaving(true);
+    try {
+      await deleteProject(selectedId);
+      success(t('notifications.saved'));
+      await refresh();
+      setModal(null);
+    } catch (e) {
+      error(e instanceof Error ? e.message : 'Erreur');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const statusLabel = (s: ProjectStatus) => t(`projects.status.${s}`);
@@ -108,6 +141,11 @@ export function ProjectsPage() {
           </Button>
         }
       />
+      {!isLiveDb && (
+        <p className="text-xs text-amber-400 mb-4 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+          {t('saas.localDbMode')}
+        </p>
+      )}
       <QuickNav
         links={[
           { to: '/suivi', labelKey: 'nav.siteTracking' },
@@ -181,7 +219,9 @@ export function ProjectsPage() {
         <ProjectForm form={form} setForm={setForm} t={t} />
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="ghost" onClick={() => setModal(null)}>{t('common.cancel')}</Button>
-          <Button onClick={modal === 'create' ? saveCreate : saveEdit}>{t('common.save')}</Button>
+          <Button disabled={saving} onClick={() => void (modal === 'create' ? saveCreate() : saveEdit())}>
+            {t('common.save')}
+          </Button>
         </div>
       </Modal>
 
@@ -189,7 +229,7 @@ export function ProjectsPage() {
         <p className="text-slate-400 text-sm mb-4">{selected?.name}</p>
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setModal(null)}>{t('common.cancel')}</Button>
-          <Button variant="danger" onClick={confirmDelete}>{t('common.delete')}</Button>
+          <Button variant="danger" disabled={saving} onClick={() => void confirmDelete()}>{t('common.delete')}</Button>
         </div>
       </Modal>
     </div>

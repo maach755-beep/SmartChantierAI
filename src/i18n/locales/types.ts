@@ -91,4 +91,5 @@ export type TranslationSchema = {
   command: Record<string, string>;
   settings: Record<string, string>;
   notifications: Record<string, string>;
+  saas: Record<string, string>;
 };

@@ -84,6 +84,8 @@ const navSections: { sectionKey: string; items: NavItem[] }[] = [
       { path: '/contrat', icon: FileCheck, key: 'contract' },
       { path: '/pointage', icon: ClipboardList, key: 'attendance' },
       { path: '/fournisseurs', icon: Truck, key: 'suppliers' },
+      { path: '/devis-gestion', icon: FileSpreadsheet, key: 'quotations' },
+      { path: '/bons-commande', icon: ClipboardList, key: 'purchaseOrders' },
       { path: '/finances', icon: Wallet, key: 'finance' },
       { path: '/planning', icon: Calendar, key: 'planning' },
       { path: '/terrain', icon: Smartphone, key: 'fieldToOffice' },

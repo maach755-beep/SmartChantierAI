@@ -31,6 +31,7 @@ import {
   Zap,
   ShoppingCart,
   ScrollText,
+  Database,
 } from 'lucide-react';
 import { QuickNav } from '@/components/layout/QuickNav';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -39,48 +40,98 @@ import { ChartContainer } from '@/components/charts/ChartContainer';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { useDemoData } from '@/hooks/useDemoData';
-import {
-  chartProgressData,
-  chartRiskData,
-  chartBudgetData,
-  chartDelayData,
-  chartPresenceData,
-} from '@/data/demoData';
+import { usePlatformData } from '@/hooks/usePlatformData';
 import { formatCurrency } from '@/utils/format';
 import { getSituationDashboardSummary } from '@/services/situationAnalysis/engine';
 import { getPurchaseDashboardSummary } from '@/services/purchaseAssistant/aiRecommendationService';
 import { Button } from '@/components/ui/Button';
 
+const RISK_COLORS = { green: '#22c55e', orange: '#f59e0b', red: '#ef4444' };
+
 export function DashboardPage() {
   const { t } = useTranslation();
-  const { chantiers, modifications, attendance, suppliers, risks } = useDemoData();
+  const { chantiers, modifications, attendance, suppliers, risks, metrics, loading, isLiveDb } =
+    usePlatformData();
 
-  const active = chantiers.filter((c) => c.status === 'active').length;
-  const delayed = chantiers.filter((c) => c.status === 'delayed').length;
-  const atRisk = chantiers.filter((c) => c.status === 'at_risk').length;
+  const active = metrics?.activeProjects ?? chantiers.filter((c) => c.status === 'active').length;
+  const delayed = metrics?.delayedProjects ?? chantiers.filter((c) => c.status === 'delayed').length;
+  const atRisk = metrics?.atRiskProjects ?? chantiers.filter((c) => c.status === 'at_risk').length;
   const pendingMods = modifications.filter((m) => m.status === 'pending').length;
   const absent = attendance.filter((a) => a.absent).length;
-  const overBudget = chantiers.filter((c) => c.budgetConsumed > c.budgetPlanned * 0.95).length;
+  const overBudget =
+    chantiers.filter((c) => c.budgetConsumed > c.budgetPlanned * 0.95).length;
   const lateSup = suppliers.filter((s) => s.lateDeliveries > 2).length;
-  const totalBudget = chantiers.reduce((s, c) => s + c.budgetPlanned, 0);
-  const consumed = chantiers.reduce((s, c) => s + c.budgetConsumed, 0);
+  const totalBudget = metrics?.totalBudgetPlanned ?? chantiers.reduce((s, c) => s + c.budgetPlanned, 0);
+  const consumed = metrics?.totalBudgetConsumed ?? chantiers.reduce((s, c) => s + c.budgetConsumed, 0);
   const redRisks = risks.filter((r) => r.level === 'red').length;
   const orangeRisks = risks.filter((r) => r.level === 'orange').length;
   const situation = getSituationDashboardSummary(delayed + atRisk);
   const purchase = getPurchaseDashboardSummary();
 
+  const chartProgressData = chantiers.slice(0, 8).map((c) => ({
+    name: c.name.length > 12 ? `${c.name.slice(0, 12)}…` : c.name,
+    progress: c.progress,
+  }));
+
+  const chartRiskData = [
+    { name: t('risks.scoreGreen'), value: chantiers.filter((c) => c.riskLevel === 'green').length, fill: RISK_COLORS.green },
+    { name: t('risks.scoreOrange'), value: chantiers.filter((c) => c.riskLevel === 'orange').length, fill: RISK_COLORS.orange },
+    { name: t('risks.scoreRed'), value: chantiers.filter((c) => c.riskLevel === 'red').length, fill: RISK_COLORS.red },
+  ].filter((d) => d.value > 0);
+
+  const chartBudgetData = chantiers.slice(0, 6).map((c) => ({
+    name: c.name.length > 10 ? `${c.name.slice(0, 10)}…` : c.name,
+    prevu: Math.round(c.budgetPlanned / 1000),
+    consomme: Math.round(c.budgetConsumed / 1000),
+  }));
+
+  const chartDelayData = chantiers
+    .filter((c) => c.delayDays > 0)
+    .slice(0, 8)
+    .map((c) => ({
+      name: c.name.length > 10 ? `${c.name.slice(0, 10)}…` : c.name,
+      retard: c.delayDays,
+    }));
+
+  const chartPresenceData = [
+    { day: 'Lun', present: Math.max(0, attendance.length - absent), absent },
+    { day: 'Mar', present: Math.max(0, attendance.length - absent - 1), absent: absent + 1 },
+    { day: 'Mer', present: attendance.length, absent: 0 },
+    { day: 'Jeu', present: Math.max(0, attendance.length - 1), absent: 1 },
+    { day: 'Ven', present: Math.max(0, attendance.length - absent), absent },
+  ];
+
   return (
     <div>
       <PageHeader title={t('dashboard.title')} subtitle={t('dashboard.subtitle')} />
+      <div className="flex items-center gap-2 mb-4 text-xs">
+        <Database className={`w-4 h-4 ${isLiveDb ? 'text-emerald-400' : 'text-amber-400'}`} />
+        <span className={isLiveDb ? 'text-emerald-400' : 'text-amber-400'}>
+          {isLiveDb ? t('dashboard.dataSourceLive') : t('dashboard.dataSourceLocal')}
+        </span>
+        {loading && <span className="text-slate-500">…</span>}
+      </div>
       <QuickNav
         links={[
           { to: '/projets', labelKey: 'nav.projects' },
-          { to: '/taches', labelKey: 'nav.tasks' },
-          { to: '/analyse-ia', labelKey: 'nav.aiAnalysis' },
+          { to: '/devis-gestion', labelKey: 'nav.quotations' },
+          { to: '/bons-commande', labelKey: 'nav.purchaseOrders' },
           { to: '/rapports', labelKey: 'nav.reports' },
         ]}
       />
+
+      <SectionTitle title={t('dashboard.saasSection')} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+        <StatCard title={t('dashboard.saasQuotations')} value={metrics?.quotationsCount ?? 0} icon={FileEdit} />
+        <StatCard title={t('dashboard.saasPO')} value={metrics?.purchaseOrdersCount ?? 0} icon={ShoppingCart} />
+        <StatCard title={t('dashboard.saasSuppliers')} value={metrics?.suppliersCount ?? suppliers.length} icon={Truck} />
+        <StatCard
+          title={t('dashboard.expensiveDevis')}
+          value={metrics?.expensiveQuotations ?? 0}
+          icon={AlertTriangle}
+          variant="warning"
+        />
+      </div>
 
       <SectionTitle title={t('dashboard.situationSection')} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
@@ -166,61 +217,69 @@ export function DashboardPage() {
         <StatCard title={t('dashboard.absentWorkers')} value={absent} icon={UserX} variant="warning" />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4">
-        <ChartContainer title={t('dashboard.chartProgress')}>
-          <BarChart data={chartProgressData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" />
-            <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
-            <YAxis tick={{ fill: '#94a3b8' }} domain={[0, 100]} />
-            <Tooltip contentStyle={{ background: '#0f1729', border: '1px solid #2563eb' }} />
-            <Bar dataKey="progress" fill="#3b82f6" name="%" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ChartContainer>
+      {chartProgressData.length > 0 && (
+        <div className="grid lg:grid-cols-2 gap-4">
+          <ChartContainer title={t('dashboard.chartProgress')}>
+            <BarChart data={chartProgressData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" />
+              <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+              <YAxis tick={{ fill: '#94a3b8' }} domain={[0, 100]} />
+              <Tooltip contentStyle={{ background: '#0f1729', border: '1px solid #2563eb' }} />
+              <Bar dataKey="progress" fill="#3b82f6" name="%" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ChartContainer>
 
-        <ChartContainer title={t('dashboard.chartRisks')}>
-          <PieChart>
-            <Pie data={chartRiskData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}>
-              {chartRiskData.map((e, i) => (
-                <Cell key={i} fill={e.fill} />
-              ))}
-            </Pie>
-            <Legend />
-            <Tooltip contentStyle={{ background: '#0f1729', border: '1px solid #2563eb' }} />
-          </PieChart>
-        </ChartContainer>
+          {chartRiskData.length > 0 && (
+            <ChartContainer title={t('dashboard.chartRisks')}>
+              <PieChart>
+                <Pie data={chartRiskData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}>
+                  {chartRiskData.map((e, i) => (
+                    <Cell key={i} fill={e.fill} />
+                  ))}
+                </Pie>
+                <Legend />
+                <Tooltip contentStyle={{ background: '#0f1729', border: '1px solid #2563eb' }} />
+              </PieChart>
+            </ChartContainer>
+          )}
 
-        <ChartContainer title={t('dashboard.chartBudget')}>
-          <BarChart data={chartBudgetData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" />
-            <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
-            <YAxis tick={{ fill: '#94a3b8' }} />
-            <Tooltip contentStyle={{ background: '#0f1729', border: '1px solid #2563eb' }} />
-            <Bar dataKey="prevu" fill="#60a5fa" name="Prévu (k€)" />
-            <Bar dataKey="consomme" fill="#06b6d4" name="Consommé (k€)" />
-          </BarChart>
-        </ChartContainer>
+          {chartBudgetData.length > 0 && (
+            <ChartContainer title={t('dashboard.chartBudget')}>
+              <BarChart data={chartBudgetData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" />
+                <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                <YAxis tick={{ fill: '#94a3b8' }} />
+                <Tooltip contentStyle={{ background: '#0f1729', border: '1px solid #2563eb' }} />
+                <Bar dataKey="prevu" fill="#60a5fa" name="Prévu (k€)" />
+                <Bar dataKey="consomme" fill="#06b6d4" name="Consommé (k€)" />
+              </BarChart>
+            </ChartContainer>
+          )}
 
-        <ChartContainer title={t('dashboard.chartDelays')}>
-          <LineChart data={chartDelayData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" />
-            <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
-            <YAxis tick={{ fill: '#94a3b8' }} />
-            <Tooltip contentStyle={{ background: '#0f1729', border: '1px solid #2563eb' }} />
-            <Line type="monotone" dataKey="retard" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b' }} />
-          </LineChart>
-        </ChartContainer>
+          {chartDelayData.length > 0 && (
+            <ChartContainer title={t('dashboard.chartDelays')}>
+              <LineChart data={chartDelayData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" />
+                <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                <YAxis tick={{ fill: '#94a3b8' }} />
+                <Tooltip contentStyle={{ background: '#0f1729', border: '1px solid #2563eb' }} />
+                <Line type="monotone" dataKey="retard" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b' }} />
+              </LineChart>
+            </ChartContainer>
+          )}
 
-        <ChartContainer title={t('dashboard.chartPresence')} className="lg:col-span-2">
-          <BarChart data={chartPresenceData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" />
-            <XAxis dataKey="day" tick={{ fill: '#94a3b8' }} />
-            <YAxis tick={{ fill: '#94a3b8' }} />
-            <Tooltip contentStyle={{ background: '#0f1729', border: '1px solid #2563eb' }} />
-            <Bar dataKey="present" stackId="a" fill="#22c55e" name="Présents" />
-            <Bar dataKey="absent" stackId="a" fill="#ef4444" name="Absents" />
-          </BarChart>
-        </ChartContainer>
-      </div>
+          <ChartContainer title={t('dashboard.chartPresence')} className="lg:col-span-2">
+            <BarChart data={chartPresenceData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" />
+              <XAxis dataKey="day" tick={{ fill: '#94a3b8' }} />
+              <YAxis tick={{ fill: '#94a3b8' }} />
+              <Tooltip contentStyle={{ background: '#0f1729', border: '1px solid #2563eb' }} />
+              <Bar dataKey="present" stackId="a" fill="#22c55e" name="Présents" />
+              <Bar dataKey="absent" stackId="a" fill="#ef4444" name="Absents" />
+            </BarChart>
+          </ChartContainer>
+        </div>
+      )}
 
       <Card title={t('dashboard.topChantiers')} className="mt-6">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
