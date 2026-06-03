@@ -1,10 +1,11 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { SidebarProvider } from '@/contexts/SidebarContext';
-import { NotificationProvider } from '@/contexts/NotificationContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { MainLayout } from '@/layouts/MainLayout';
+import { AppShell } from '@/layouts/AppShell';
+import { AuthLayout } from '@/layouts/AuthLayout';
+import { ProtectedRoute, GuestRoute } from '@/components/auth/ProtectedRoute';
 import { PageLoader } from '@/components/ui/PageLoader';
 
 const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
@@ -64,6 +65,11 @@ const SiteJournalPage = lazy(() => import('@/pages/SiteJournalPage').then((m) =>
 const DelayDetectionPage = lazy(() =>
   import('@/pages/DelayDetectionPage').then((m) => ({ default: m.DelayDetectionPage }))
 );
+const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })));
+const ForgotPasswordPage = lazy(() =>
+  import('@/pages/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage }))
+);
 
 function Lazy({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<PageLoader />}>{children}</Suspense>;
@@ -74,53 +80,60 @@ export default function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <ToastProvider>
-          <SidebarProvider>
-            <NotificationProvider>
-              <Routes>
-                <Route element={<MainLayout />}>
-                  <Route path="/" element={<Lazy><DashboardPage /></Lazy>} />
-                  <Route path="/projets" element={<Lazy><ProjectsPage /></Lazy>} />
-                  <Route path="/taches" element={<Lazy><TasksPage /></Lazy>} />
-                  <Route path="/equipe" element={<Lazy><TeamPage /></Lazy>} />
-                  <Route path="/materiaux" element={<Lazy><MaterialsPage /></Lazy>} />
-                  <Route path="/analyse-ia" element={<Lazy><AiAnalysisPage /></Lazy>} />
-                  <Route path="/photos" element={<Lazy><PhotoUploadPage /></Lazy>} />
-                  <Route path="/plans" element={<Lazy><PlanAnalysisPage /></Lazy>} />
-                  <Route path="/plan-extraction" element={<Lazy><PlanExtractionPage /></Lazy>} />
-                  <Route path="/revetements" element={<Lazy><FlooringPage /></Lazy>} />
-                  <Route path="/suivi" element={<Lazy><SiteTrackingPage /></Lazy>} />
-                  <Route path="/suivi/:id" element={<Lazy><SiteDetailPage /></Lazy>} />
-                  <Route path="/modifications" element={<Lazy><ModificationsPage /></Lazy>} />
-                  <Route path="/risques" element={<Lazy><RisksPage /></Lazy>} />
-                  <Route path="/contrat" element={<Lazy><ContractPage /></Lazy>} />
-                  <Route path="/pointage" element={<Lazy><AttendancePage /></Lazy>} />
-                  <Route path="/fournisseurs" element={<Lazy><SuppliersPage /></Lazy>} />
-                  <Route path="/finances" element={<Lazy><FinancePage /></Lazy>} />
-                  <Route path="/planning" element={<Lazy><PlanningPage /></Lazy>} />
-                  <Route path="/terrain" element={<Lazy><FieldToOfficePage /></Lazy>} />
-                  <Route path="/photo-comparison" element={<Lazy><PhotoComparisonPage /></Lazy>} />
-                  <Route path="/rapports" element={<Lazy><ReportsPage /></Lazy>} />
-                  <Route path="/assistant" element={<Lazy><AssistantPage /></Lazy>} />
-                  <Route path="/recherche" element={<Lazy><SearchPage /></Lazy>} />
-                  <Route path="/pilotage" element={<Lazy><CommandCenterPage /></Lazy>} />
-                  <Route path="/centre-pilotage" element={<Navigate to="/pilotage" replace />} />
-                  <Route path="/directeur-ia-chantier" element={<Navigate to="/pilotage" replace />} />
-                  <Route path="/analyse-situation-chantier" element={<Lazy><SituationAnalysisPage /></Lazy>} />
-                  <Route path="/assistant-achat" element={<Lazy><PurchaseAssistantPage /></Lazy>} />
-                  <Route path="/assistant-directeur-ia" element={<Lazy><DirectorAssistantPage /></Lazy>} />
-                  <Route path="/bibliotheque-materiaux" element={<Lazy><MaterialsLibraryPage /></Lazy>} />
-                  <Route path="/assistant-devis-ia" element={<Lazy><DevisAssistantPage /></Lazy>} />
-                  <Route path="/assistant-fiche-technique" element={<Lazy><TechnicalSheetAssistantPage /></Lazy>} />
-                  <Route path="/centre-rentabilite" element={<Lazy><ProfitabilityCenterPage /></Lazy>} />
-                  <Route path="/journal-chantier-ia" element={<Lazy><SiteJournalPage /></Lazy>} />
-                  <Route path="/detection-retard" element={<Lazy><DelayDetectionPage /></Lazy>} />
-                  <Route path="/documents" element={<Lazy><DocumentsPage /></Lazy>} />
-                  <Route path="/parametres" element={<Lazy><SettingsPage /></Lazy>} />
-                  <Route path="*" element={<Lazy><NotFoundPage /></Lazy>} />
+          <AuthProvider>
+            <Routes>
+              <Route element={<GuestRoute />}>
+                <Route element={<AuthLayout />}>
+                  <Route path="/login" element={<Lazy><LoginPage /></Lazy>} />
+                  <Route path="/register" element={<Lazy><RegisterPage /></Lazy>} />
+                  <Route path="/forgot-password" element={<Lazy><ForgotPasswordPage /></Lazy>} />
                 </Route>
-              </Routes>
-            </NotificationProvider>
-          </SidebarProvider>
+              </Route>
+              <Route element={<ProtectedRoute />}>
+                <Route element={<AppShell />}>
+                      <Route path="/" element={<Lazy><DashboardPage /></Lazy>} />
+                      <Route path="/projets" element={<Lazy><ProjectsPage /></Lazy>} />
+                      <Route path="/taches" element={<Lazy><TasksPage /></Lazy>} />
+                      <Route path="/equipe" element={<Lazy><TeamPage /></Lazy>} />
+                      <Route path="/materiaux" element={<Lazy><MaterialsPage /></Lazy>} />
+                      <Route path="/analyse-ia" element={<Lazy><AiAnalysisPage /></Lazy>} />
+                      <Route path="/photos" element={<Lazy><PhotoUploadPage /></Lazy>} />
+                      <Route path="/plans" element={<Lazy><PlanAnalysisPage /></Lazy>} />
+                      <Route path="/plan-extraction" element={<Lazy><PlanExtractionPage /></Lazy>} />
+                      <Route path="/revetements" element={<Lazy><FlooringPage /></Lazy>} />
+                      <Route path="/suivi" element={<Lazy><SiteTrackingPage /></Lazy>} />
+                      <Route path="/suivi/:id" element={<Lazy><SiteDetailPage /></Lazy>} />
+                      <Route path="/modifications" element={<Lazy><ModificationsPage /></Lazy>} />
+                      <Route path="/risques" element={<Lazy><RisksPage /></Lazy>} />
+                      <Route path="/contrat" element={<Lazy><ContractPage /></Lazy>} />
+                      <Route path="/pointage" element={<Lazy><AttendancePage /></Lazy>} />
+                      <Route path="/fournisseurs" element={<Lazy><SuppliersPage /></Lazy>} />
+                      <Route path="/finances" element={<Lazy><FinancePage /></Lazy>} />
+                      <Route path="/planning" element={<Lazy><PlanningPage /></Lazy>} />
+                      <Route path="/terrain" element={<Lazy><FieldToOfficePage /></Lazy>} />
+                      <Route path="/photo-comparison" element={<Lazy><PhotoComparisonPage /></Lazy>} />
+                      <Route path="/rapports" element={<Lazy><ReportsPage /></Lazy>} />
+                      <Route path="/assistant" element={<Lazy><AssistantPage /></Lazy>} />
+                      <Route path="/recherche" element={<Lazy><SearchPage /></Lazy>} />
+                      <Route path="/pilotage" element={<Lazy><CommandCenterPage /></Lazy>} />
+                      <Route path="/centre-pilotage" element={<Navigate to="/pilotage" replace />} />
+                      <Route path="/directeur-ia-chantier" element={<Navigate to="/pilotage" replace />} />
+                      <Route path="/analyse-situation-chantier" element={<Lazy><SituationAnalysisPage /></Lazy>} />
+                      <Route path="/assistant-achat" element={<Lazy><PurchaseAssistantPage /></Lazy>} />
+                      <Route path="/assistant-directeur-ia" element={<Lazy><DirectorAssistantPage /></Lazy>} />
+                      <Route path="/bibliotheque-materiaux" element={<Lazy><MaterialsLibraryPage /></Lazy>} />
+                      <Route path="/assistant-devis-ia" element={<Lazy><DevisAssistantPage /></Lazy>} />
+                      <Route path="/assistant-fiche-technique" element={<Lazy><TechnicalSheetAssistantPage /></Lazy>} />
+                      <Route path="/centre-rentabilite" element={<Lazy><ProfitabilityCenterPage /></Lazy>} />
+                      <Route path="/journal-chantier-ia" element={<Lazy><SiteJournalPage /></Lazy>} />
+                      <Route path="/detection-retard" element={<Lazy><DelayDetectionPage /></Lazy>} />
+                      <Route path="/documents" element={<Lazy><DocumentsPage /></Lazy>} />
+                      <Route path="/parametres" element={<Lazy><SettingsPage /></Lazy>} />
+                      <Route path="*" element={<Lazy><NotFoundPage /></Lazy>} />
+                </Route>
+              </Route>
+            </Routes>
+          </AuthProvider>
         </ToastProvider>
       </BrowserRouter>
     </ErrorBoundary>

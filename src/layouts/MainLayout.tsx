@@ -3,14 +3,20 @@ import { Sidebar } from './Sidebar';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { NotificationPanel } from '@/components/layout/NotificationPanel';
 import { useTranslation } from 'react-i18next';
-import { Bell } from 'lucide-react';
+import { Bell, LogOut } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { ROLE_LABELS } from '@/types/auth';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export function MainLayout() {
   const { t } = useTranslation();
+  const { lang } = useLanguage();
   const { collapsed } = useSidebar();
   const { unreadCount, setPanelOpen } = useNotifications();
+  const { user, signOut, supabaseReady } = useAuth();
+  const roleLabel = user ? ROLE_LABELS[user.role][lang === 'ar' ? 'ar' : lang === 'en' ? 'en' : 'fr'] : '';
 
   return (
     <div className="flex min-h-screen">
@@ -23,9 +29,16 @@ export function MainLayout() {
         <header className="sticky top-0 z-30 flex items-center justify-between gap-4 px-4 lg:px-6 py-4 bg-btp-950/90 backdrop-blur-md border-b border-btp-500/20">
           <div className="flex-1 min-w-0 ps-12 lg:ps-0" />
           <div className="flex items-center gap-3">
-            <span className="hidden sm:inline text-xs text-amber-400/90 px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
-              {t('app.demo')}
-            </span>
+            {user && (
+              <span className="hidden md:inline text-xs text-slate-300 px-2 py-1 rounded-lg bg-btp-800/60 border border-btp-500/20 max-w-[180px] truncate">
+                {user.displayName} · {roleLabel}
+              </span>
+            )}
+            {!supabaseReady && (
+              <span className="hidden sm:inline text-xs text-amber-400/90 px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                {t('app.demo')}
+              </span>
+            )}
             <button
               type="button"
               className="relative p-2 rounded-lg hover:bg-btp-800/50 text-slate-400"
@@ -39,11 +52,21 @@ export function MainLayout() {
                 </span>
               )}
             </button>
+            <button
+              type="button"
+              className="p-2 rounded-lg hover:bg-btp-800/50 text-slate-400 hover:text-white min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label={t('auth.logout')}
+              onClick={() => void signOut()}
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
             <LanguageSwitcher />
           </div>
         </header>
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
-          <Outlet />
+        <main className="flex-1 p-4 md:p-5 lg:p-6 overflow-auto">
+          <div className="max-w-[1600px] mx-auto w-full">
+            <Outlet />
+          </div>
         </main>
       </div>
       <NotificationPanel />

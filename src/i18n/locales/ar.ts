@@ -7,6 +7,21 @@ export const ar: TranslationSchema = {
     tagline: 'إدارة ذكية لمواقع البناء',
     demo: 'وضع تجريبي',
   },
+  auth: {
+    ...fr.auth,
+    hero: 'منصة ذكاء اصطناعي لإدارة مواقع البناء: عروض الأسعار والمشتريات وOCR والتقارير.',
+    loginTitle: 'تسجيل الدخول',
+    registerTitle: 'إنشاء حساب',
+    signIn: 'دخول',
+    register: 'التسجيل',
+    logout: 'خروج',
+    roles: {
+      admin: 'مدير النظام',
+      project_manager: 'مدير المشروع',
+      site_manager: 'رئيس الورشة',
+      client: 'العميل',
+    },
+  },
   lang: {
     fr: 'Français',
     ar: 'العربية',

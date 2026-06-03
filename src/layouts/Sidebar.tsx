@@ -193,8 +193,9 @@ export function Sidebar() {
         </nav>
 
         {!collapsed && (
-          <div className="p-3 border-t border-btp-500/20">
-            <span className="text-[10px] text-cyan-400/80 uppercase tracking-wider">{t('app.demo')}</span>
+          <div className="p-3 border-t border-btp-500/20 space-y-1">
+            <span className="text-[10px] text-cyan-400/80 uppercase tracking-wider block">SmartChantier v4</span>
+            <span className="text-[10px] text-slate-500 block">{t('app.tagline')}</span>
           </div>
         )}
       </aside>

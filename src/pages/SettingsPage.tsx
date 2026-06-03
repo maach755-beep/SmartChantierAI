@@ -11,7 +11,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { APP_COUNTRY, APP_CURRENCY } from '@/config/france';
 import { getRealWebSearchStatusLabel, isRealWebSearchEnabled } from '@/services/realSearch/config';
 
-const ROLES: UserRole[] = ['admin', 'director', 'project_manager', 'site_manager', 'worker', 'viewer'];
+const ROLES: UserRole[] = ['admin', 'project_manager', 'site_manager', 'client'];
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -89,7 +89,7 @@ export function SettingsPage() {
           <ul className="grid sm:grid-cols-2 gap-2 text-sm text-slate-400">
             {ROLES.map((role) => (
               <li key={role} className="px-3 py-2 rounded-lg bg-btp-900/50 border border-btp-600/20">
-                {lang === 'ar' ? ROLE_LABELS[role].ar : ROLE_LABELS[role].fr}
+                {lang === 'ar' ? ROLE_LABELS[role].ar : lang === 'en' ? ROLE_LABELS[role].en : ROLE_LABELS[role].fr}
               </li>
             ))}
           </ul>

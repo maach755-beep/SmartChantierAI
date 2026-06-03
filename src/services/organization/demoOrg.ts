@@ -14,10 +14,10 @@ const DEFAULT_ORG: OrganizationContext = {
   },
   users: [
     { id: 'u-admin', companyId: 'co-smartchantier-demo', email: 'admin@smartchantier.fr', displayName: 'Admin Démo', role: 'admin', projectIds: ['pr-1', 'pr-2'], active: true },
-    { id: 'u-dir', companyId: 'co-smartchantier-demo', email: 'directeur@smartchantier.fr', displayName: 'Directeur Travaux', role: 'director', projectIds: ['pr-1', 'pr-2'], active: true },
+    { id: 'u-dir', companyId: 'co-smartchantier-demo', email: 'directeur@smartchantier.fr', displayName: 'Directeur Travaux', role: 'project_manager', projectIds: ['pr-1', 'pr-2'], active: true },
     { id: 'u-pm', companyId: 'co-smartchantier-demo', email: 'chef.projet@smartchantier.fr', displayName: 'Chef de projet', role: 'project_manager', projectIds: ['pr-1'], active: true },
     { id: 'u-sm', companyId: 'co-smartchantier-demo', email: 'chantier@smartchantier.fr', displayName: 'Chef de chantier', role: 'site_manager', projectIds: ['pr-1'], active: true },
-    { id: 'u-w1', companyId: 'co-smartchantier-demo', email: 'ouvrier@smartchantier.fr', displayName: 'Équipe terrain', role: 'worker', projectIds: ['pr-1'], active: true },
+    { id: 'u-w1', companyId: 'co-smartchantier-demo', email: 'ouvrier@smartchantier.fr', displayName: 'Équipe terrain', role: 'site_manager', projectIds: ['pr-1'], active: true },
   ],
   projects: [
     { id: 'pr-1', companyId: 'co-smartchantier-demo', name: 'Résidence Azur', chantierIds: ['ch-1', 'ch-2'], managerUserId: 'u-pm', budgetPlanned: 4_200_000, status: 'active' },

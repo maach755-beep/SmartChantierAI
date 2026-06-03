@@ -1,5 +1,6 @@
 export type TranslationSchema = {
   app: { name: string; tagline: string; demo: string };
+  auth: Record<string, string | Record<string, string>>;
   lang: { fr: string; ar: string; en: string };
   nav: Record<string, string>;
   common: Record<string, string>;
