@@ -90,6 +90,7 @@ export type TranslationSchema = {
   siteDirector: Record<string, string>;
   command: Record<string, string>;
   settings: Record<string, string>;
+  aiSettings: Record<string, string>;
   notifications: Record<string, string>;
   saas: Record<string, string>;
   phase2: Record<string, string>;

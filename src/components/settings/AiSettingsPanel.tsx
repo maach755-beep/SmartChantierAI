@@ -1,6 +1,7 @@
+import { Link } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Brain, Loader2, RefreshCw, Zap } from 'lucide-react';
+import { Brain, ExternalLink, Loader2, RefreshCw, Zap } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import {
@@ -162,6 +163,14 @@ export function AiSettingsPanel() {
             : `${t('settings.aiTestFailed')}: ${testResult.message}`}
         </p>
       )}
+
+      <Link
+        to="/parametres-ia"
+        className="inline-flex items-center gap-2 text-sm text-violet-400 hover:text-violet-300 mt-4"
+      >
+        <ExternalLink className="w-4 h-4" />
+        {t('settings.aiOpenFullPage')}
+      </Link>
     </Card>
   );
 }

@@ -1,4 +1,4 @@
-import { ollamaConfig, OPENAI_OPTIONAL_HINT } from './ollamaConfig';
+import { getEffectiveOllamaConfig, OPENAI_OPTIONAL_HINT } from './ollamaConfig';
 import { getOllamaStatus, ollamaChat, type OllamaStatus } from './ollamaClient';
 import { procurementConfig } from '@/services/procurement/config';
 
@@ -14,14 +14,15 @@ export type AiProviderOverview = {
 };
 
 export function getAiProviderOverview(): AiProviderOverview {
+  const cfg = getEffectiveOllamaConfig();
   return {
     primaryProvider: 'ollama',
     fallbackProvider: procurementConfig.openai.enabled ? 'openai' : 'rules',
     openaiConfigured: procurementConfig.openai.enabled,
     openaiModel: procurementConfig.openai.model,
-    ollamaBaseUrl: ollamaConfig.baseUrl,
-    configuredTextModel: ollamaConfig.textModel,
-    configuredVisionModel: ollamaConfig.visionModel,
+    ollamaBaseUrl: cfg.baseUrl,
+    configuredTextModel: cfg.textModel,
+    configuredVisionModel: cfg.visionModel,
     openaiHint: OPENAI_OPTIONAL_HINT,
   };
 }

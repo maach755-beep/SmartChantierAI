@@ -110,6 +110,7 @@ const navSections: { sectionKey: string; items: NavItem[] }[] = [
       { path: '/rapports', icon: FileText, key: 'reports' },
       { path: '/recherche', icon: Search, key: 'search' },
       { path: '/pilotage', icon: Brain, key: 'siteDirector' },
+      { path: '/parametres-ia', icon: Brain, key: 'aiSettings' },
       { path: '/parametres', icon: Settings, key: 'settings' },
     ],
   },

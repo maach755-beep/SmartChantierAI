@@ -7,6 +7,7 @@ import { planExtractionRouter } from './routes/v1/plan-extraction.routes.js';
 import { siteDirectorRouter } from './routes/v1/site-director.routes.js';
 import { tavilyRouter } from './routes/tavily.routes.js';
 import { ollamaRouter } from './routes/ollama.routes.js';
+import { aiHealthRouter } from './routes/ai-health.routes.js';
 
 ensureSeed();
 
@@ -32,6 +33,7 @@ app.get('/api/health', async (_req, res) => {
 });
 
 app.use('/api/ollama', ollamaRouter);
+app.use('/api/ai', aiHealthRouter);
 
 app.use('/api/v1/plan-extraction', tenantMiddleware, planExtractionRouter);
 app.use('/api/v1/site-director', tenantMiddleware, siteDirectorRouter);

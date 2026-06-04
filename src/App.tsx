@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { AiHealthProvider } from '@/contexts/AiHealthContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AppShell } from '@/layouts/AppShell';
 import { AuthLayout } from '@/layouts/AuthLayout';
@@ -44,6 +45,7 @@ const PurchaseAssistantPage = lazy(() =>
   import('@/pages/PurchaseAssistantPage').then((m) => ({ default: m.PurchaseAssistantPage }))
 );
 const SettingsPage = lazy(() => import('@/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const AiSettingsPage = lazy(() => import('@/pages/AiSettingsPage').then((m) => ({ default: m.AiSettingsPage })));
 const DocumentsPage = lazy(() => import('@/pages/DocumentsPage').then((m) => ({ default: m.DocumentsPage })));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 const DirectorAssistantPage = lazy(() =>
@@ -87,6 +89,7 @@ export default function App() {
       <BrowserRouter>
         <ToastProvider>
           <AuthProvider>
+            <AiHealthProvider>
             <Routes>
               <Route element={<GuestRoute />}>
                 <Route element={<AuthLayout />}>
@@ -137,10 +140,12 @@ export default function App() {
                       <Route path="/detection-retard" element={<Lazy><DelayDetectionPage /></Lazy>} />
                       <Route path="/documents" element={<Lazy><DocumentsPage /></Lazy>} />
                       <Route path="/parametres" element={<Lazy><SettingsPage /></Lazy>} />
+                      <Route path="/parametres-ia" element={<Lazy><AiSettingsPage /></Lazy>} />
                       <Route path="*" element={<Lazy><NotFoundPage /></Lazy>} />
                 </Route>
               </Route>
             </Routes>
+            </AiHealthProvider>
           </AuthProvider>
         </ToastProvider>
       </BrowserRouter>

@@ -46,6 +46,7 @@ import { getSituationDashboardSummary } from '@/services/situationAnalysis/engin
 import { getPurchaseDashboardSummary } from '@/services/purchaseAssistant/aiRecommendationService';
 import { Button } from '@/components/ui/Button';
 import { SiteManagerPanel } from '@/components/dashboard/SiteManagerPanel';
+import { AiStatusBadge } from '@/components/ai/AiStatusBadge';
 import { Users, ListTodo, HeartPulse } from 'lucide-react';
 
 const RISK_COLORS = { green: '#22c55e', orange: '#f59e0b', red: '#ef4444' };
@@ -105,11 +106,12 @@ export function DashboardPage() {
   return (
     <div>
       <PageHeader title={t('dashboard.title')} subtitle={t('dashboard.subtitle')} />
-      <div className="flex items-center gap-2 mb-4 text-xs">
+      <div className="flex flex-wrap items-center gap-2 mb-4 text-xs">
         <Database className={`w-4 h-4 ${isLiveDb ? 'text-emerald-400' : 'text-amber-400'}`} />
         <span className={isLiveDb ? 'text-emerald-400' : 'text-amber-400'}>
           {isLiveDb ? t('dashboard.dataSourceLive') : t('dashboard.dataSourceLocal')}
         </span>
+        <AiStatusBadge />
         {loading && <span className="text-slate-500">…</span>}
       </div>
       <QuickNav

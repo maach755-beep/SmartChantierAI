@@ -40,7 +40,7 @@ VITE_OPENAI_API_KEY=sk-...
    ```bash
    npm run dev
    ```
-4. Open **Settings → Intelligence artificielle** to see:
+4. Open **Paramètres IA** (`/parametres-ia`) or **Settings → Intelligence artificielle** to see:
    - Current provider (Ollama)
    - Ollama online/offline status
    - Active text/vision model names
@@ -57,9 +57,21 @@ In development, Vite proxies `/ollama` → `http://localhost:11434` (see `vite.c
 - AI features degrade gracefully: rule-based procurement, cached/demo responses where applicable.
 - Use **Actualiser le statut** after starting Ollama.
 
+## Health check API
+
+When the API server is running (`npm run api:plan`, port 3001):
+
+```http
+GET /api/ai/health
+```
+
+Returns Ollama online status, models, and `ok: true` when a text model is available. The Vite dev proxy forwards `/api` to the API server.
+
+On startup, the web app calls this endpoint (or falls back to a direct Ollama check) via `AiHealthProvider`.
+
 ## Test connection
 
-The **Test AI connection** button in Settings:
+The **Test AI connection** button on the AI Settings page:
 
 1. Pings Ollama (`/api/tags`) and verifies a text model is installed.
 2. Sends a minimal chat prompt when online.

@@ -1,4 +1,10 @@
-import { ollamaConfig, OLLAMA_OFFLINE_MESSAGE, OLLAMA_TEXT_MODEL_MISSING, OLLAMA_VISION_MODEL_MISSING } from './ollamaConfig';
+import {
+  getEffectiveOllamaConfig,
+  ollamaConfig,
+  OLLAMA_OFFLINE_MESSAGE,
+  OLLAMA_TEXT_MODEL_MISSING,
+  OLLAMA_VISION_MODEL_MISSING,
+} from './ollamaConfig';
 
 export type OllamaStatus = {
   online: boolean;
@@ -11,6 +17,11 @@ export type OllamaStatus = {
 let cachedStatus: OllamaStatus | null = null;
 let cacheAt = 0;
 const CACHE_MS = 15_000;
+
+export function clearOllamaStatusCache(): void {
+  cachedStatus = null;
+  cacheAt = 0;
+}
 
 function modelMatches(modelName: string, candidate: string): boolean {
   const l = modelName.toLowerCase();
@@ -30,10 +41,11 @@ export function pickInstalledModel(preferred: string, fallbacks: readonly string
 }
 
 export async function fetchOllamaTags(): Promise<string[]> {
+  const cfg = getEffectiveOllamaConfig();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
-    const res = await fetch(`${ollamaConfig.baseUrl}/api/tags`, { signal: controller.signal });
+    const res = await fetch(`${cfg.baseUrl}/api/tags`, { signal: controller.signal });
     clearTimeout(timer);
     if (!res.ok) return [];
     const data = (await res.json()) as { models?: { name: string }[] };
@@ -47,13 +59,14 @@ export async function fetchOllamaTags(): Promise<string[]> {
 export async function getOllamaStatus(force = false): Promise<OllamaStatus> {
   if (!force && cachedStatus && Date.now() - cacheAt < CACHE_MS) return cachedStatus;
 
+  const cfg = getEffectiveOllamaConfig();
   const installed = await fetchOllamaTags();
   const online = installed.length > 0;
   const textModel = online
-    ? pickInstalledModel(ollamaConfig.textModel, ollamaConfig.textModelFallbacks, installed)
+    ? pickInstalledModel(cfg.textModel, cfg.textModelFallbacks, installed)
     : null;
   const visionModel = online
-    ? pickInstalledModel(ollamaConfig.visionModel, ollamaConfig.visionModelFallbacks, installed)
+    ? pickInstalledModel(cfg.visionModel, cfg.visionModelFallbacks, installed)
     : null;
 
   const message = !online
@@ -106,7 +119,8 @@ export async function ollamaChat(params: {
         ? `${params.user}\n\nRéponds uniquement avec un objet JSON valide, sans markdown.`
         : params.user;
 
-    const res = await fetch(`${ollamaConfig.baseUrl}/api/chat`, {
+    const cfg = getEffectiveOllamaConfig();
+    const res = await fetch(`${cfg.baseUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
@@ -155,7 +169,8 @@ export async function ollamaVision(params: {
   const timer = setTimeout(() => controller.abort(), ollamaConfig.requestTimeoutMs);
 
   try {
-    const res = await fetch(`${ollamaConfig.baseUrl}/api/chat`, {
+    const cfg = getEffectiveOllamaConfig();
+    const res = await fetch(`${cfg.baseUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
