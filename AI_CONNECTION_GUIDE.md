@@ -68,7 +68,7 @@ GET /api/ai/health
 
 Returns Ollama online status, models, and `ok: true` when a text model is available. The Vite dev proxy forwards `/api` to the API server.
 
-On startup, the web app calls this endpoint (or falls back to a direct Ollama check) via `AiHealthProvider`.
+By default the web app uses **local Ollama health** (`http://localhost:11434/api/tags`) and does **not** call `/api/ai/health` (avoids Vite ECONNREFUSED when the API server is off). Set `VITE_AI_HEALTH_MODE=server` to use the backend health endpoint instead.
 
 ## Test connection
 
