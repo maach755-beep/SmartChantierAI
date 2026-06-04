@@ -1,5 +1,9 @@
 import { parseProcurementQuery } from '@/services/procurement/queryParser';
 import { isRealWebSearchEnabled, TAVILY_UNCONFIGURED_MESSAGE } from '@/services/realSearch/config';
+import {
+  isBlockedSupplierUrl,
+  SUPPLIER_UNAVAILABLE_MESSAGE,
+} from '@/services/realSearch/supplierAvailability';
 import { searchTavilyWeb } from '@/services/realSearch/tavilyProvider';
 import type { FicheTechniqueSearchInput, FicheTechniqueSearchResult } from '@/types/ficheTechnique';
 import {
@@ -63,6 +67,19 @@ export async function searchTechnicalProduct(
 
   const queryUsed = buildSearchQuery(input);
   const searchConfigured = isRealWebSearchEnabled();
+
+  if (input.supplierUrl.trim() && isBlockedSupplierUrl(input.supplierUrl.trim())) {
+    const provisional = normalizeTechnicalSheet({
+      ...buildProvisionalRawData(input),
+      notes: SUPPLIER_UNAVAILABLE_MESSAGE,
+    });
+    return {
+      products: [provisional],
+      providerNote: SUPPLIER_UNAVAILABLE_MESSAGE,
+      searchConfigured,
+      queryUsed,
+    };
+  }
 
   if (!searchConfigured) {
     console.error('[ficheTechnique] Tavily non configuré:', TAVILY_UNCONFIGURED_MESSAGE);

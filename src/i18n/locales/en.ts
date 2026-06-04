@@ -237,7 +237,13 @@ export const en: TranslationSchema = {
     pdfTitle: 'PRODUCT TECHNICAL DATA SHEET',
     comparisonPdfTitle: 'TECHNICAL PRODUCT COMPARISON',
   },
-  search: { ...fr.search },
+  search: {
+    ...fr.search,
+    supplierTemporarilyUnavailable: 'Supplier temporarily unavailable',
+    supplierUnavailableTitle: 'Suppliers temporarily unavailable',
+    supplierUnavailableHint:
+      'These retailers block automated requests. Search continues with other suppliers.',
+  },
   settings: { ...fr.settings },
   notifications: { ...fr.notifications },
   aiSettings: {

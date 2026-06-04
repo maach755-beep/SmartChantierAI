@@ -104,6 +104,12 @@ export interface ProcurementSearchInsight {
   alternatives: ProcurementProductResult[];
 }
 
+export interface SupplierUnavailableNotice {
+  supplier: string;
+  reason: string;
+  message: string;
+}
+
 export interface ProcurementSearchResponse {
   id: string;
   generatedAt: string;
@@ -118,4 +124,5 @@ export interface ProcurementSearchResponse {
   costEstimate: ProcurementCostEstimate;
   deliveryEstimate: ProcurementDeliveryEstimate;
   aiSummary: string;
+  unavailableSuppliers?: SupplierUnavailableNotice[];
 }

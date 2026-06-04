@@ -51,7 +51,13 @@ export const tavilyProcurementProvider: ProcurementCatalogProvider = {
 
     try {
       const web = await searchTavilyWeb(parsed);
-      if (web.results.length === 0) return null;
+      const unavailableSuppliers = (web.unavailableSuppliers ?? []).map((u) => ({
+        supplier: u.supplier,
+        reason: u.reason,
+        message: u.message,
+      }));
+
+      if (web.results.length === 0 && unavailableSuppliers.length === 0) return null;
 
       return {
         source: 'web',
@@ -59,8 +65,10 @@ export const tavilyProcurementProvider: ProcurementCatalogProvider = {
         note: web.providerNote,
         resultOrigin: 'real_web',
         webQuery: web.query,
+        unavailableSuppliers,
       };
-    } catch {
+    } catch (err) {
+      console.warn('[SmartChantier] Tavily procurement search failed:', err);
       return null;
     }
   },

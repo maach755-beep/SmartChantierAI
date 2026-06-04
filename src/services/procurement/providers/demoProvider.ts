@@ -1,6 +1,7 @@
 import { purchaseDemoCatalog } from '@/data/purchaseDemoProducts';
 import { FRENCH_SUPPLIER_NETWORK } from '@/config/france';
 import { DEMO_SOURCE_LABEL } from '@/services/realSearch/config';
+import { isBlockedSupplierName } from '@/services/realSearch/supplierAvailability';
 import { extractQueryHints } from '@/services/purchaseAssistant/languageDetect';
 import type { ParsedProcurementQuery } from '@/types/procurementSearch';
 import type { CatalogItemDTO, ProcurementCatalogProvider, ProcurementProviderResult } from './types';
@@ -39,7 +40,9 @@ export const demoProcurementProvider: ProcurementCatalogProvider = {
     const hints = extractQueryHints(parsed.rawQuery);
     const q = parsed.rawQuery.toLowerCase();
 
-    let candidates = purchaseDemoCatalog.filter((p) => allowedSuppliers.has(p.supplier));
+    let candidates = purchaseDemoCatalog.filter(
+      (p) => allowedSuppliers.has(p.supplier) && !isBlockedSupplierName(p.supplier)
+    );
 
     if (parsed.category) {
       candidates = candidates.filter((p) => p.category === parsed.category);
@@ -64,7 +67,11 @@ export const demoProcurementProvider: ProcurementCatalogProvider = {
       return s - idx * 0.5;
     };
 
-    if (candidates.length === 0) candidates = [...purchaseDemoCatalog].filter((p) => allowedSuppliers.has(p.supplier));
+    if (candidates.length === 0) {
+      candidates = [...purchaseDemoCatalog].filter(
+        (p) => allowedSuppliers.has(p.supplier) && !isBlockedSupplierName(p.supplier)
+      );
+    }
 
     const ranked = candidates
       .map((p, idx) => ({ p, s: score(p, idx) }))

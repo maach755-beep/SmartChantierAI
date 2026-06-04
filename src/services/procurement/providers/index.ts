@@ -16,8 +16,8 @@ export async function fetchCatalogFromProviders(
     try {
       const web = await tavilyProcurementProvider.search(parsed);
       if (web && web.items.length > 0) return web;
-    } catch {
-      /* fallback démo */
+    } catch (err) {
+      console.warn('[SmartChantier] Web procurement provider error (continuing with demo):', err);
     }
   }
 

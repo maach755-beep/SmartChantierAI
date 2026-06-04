@@ -229,6 +229,23 @@ export function ProcurementAssistantPanel({
 
       {procurement && !loading && (
         <div className="space-y-6">
+          {(procurement.unavailableSuppliers?.length ?? 0) > 0 && (
+            <div
+              className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4"
+              role="status"
+            >
+              <p className="text-sm font-medium text-amber-200">{t('search.supplierUnavailableTitle')}</p>
+              <p className="text-xs text-slate-500 mt-1">{t('search.supplierUnavailableHint')}</p>
+              <ul className="mt-2 space-y-1 text-xs text-amber-100/90">
+                {procurement.unavailableSuppliers!.map((u) => (
+                  <li key={u.supplier}>
+                    <span className="font-medium">{u.supplier}</span> — {u.message}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="rounded-xl border border-btp-600/25 bg-btp-900/40 p-4">
             <p className="text-sm text-slate-300 whitespace-pre-wrap">
               {procurement.aiSummary.replace(/\*\*/g, '')}

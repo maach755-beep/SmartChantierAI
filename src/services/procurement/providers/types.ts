@@ -2,6 +2,7 @@ import type {
   ParsedProcurementQuery,
   ProcurementDataSource,
   ProcurementResultOrigin,
+  SupplierUnavailableNotice,
 } from '@/types/procurementSearch';
 import type { PurchaseQuality } from '@/types/purchaseAssistant';
 
@@ -37,6 +38,7 @@ export interface ProcurementProviderResult {
   resultOrigin: ProcurementResultOrigin;
   webQuery?: string;
   tavilyAnswer?: string;
+  unavailableSuppliers?: SupplierUnavailableNotice[];
 }
 
 export interface ProcurementCatalogProvider {

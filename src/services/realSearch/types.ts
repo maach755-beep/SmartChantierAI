@@ -23,12 +23,20 @@ export interface RealWebSearchHit {
   resultOrigin: RealSearchResultOrigin;
 }
 
+export interface SupplierUnavailableNotice {
+  supplier: string;
+  reason: string;
+  message: string;
+  loggedAt?: string;
+}
+
 export interface TavilySearchResponse {
   query: string;
   answer?: string;
   results: RealWebSearchHit[];
   resultOrigin: RealSearchResultOrigin;
   providerNote: string;
+  unavailableSuppliers?: SupplierUnavailableNotice[];
 }
 
 export const WEB_PRODUCT_RESULTS_LIMIT = 10;

@@ -9,10 +9,24 @@ import {
 import { classifyProductUrl, cleanProductTitle } from './productPageFilter';
 import { extractProductFields } from './productExtractor';
 import {
-  BTP_SUPPLIER_DOMAIN_LIST,
   detectSupplierFromText,
   detectSupplierFromUrl,
+  getScrapeAllowedDomains,
+  getScrapeAllowedSuppliers,
+  type BtpSupplierTarget,
 } from './supplierDomains';
+import {
+  collectPolicyBlockedSuppliers,
+  dedupeUnavailable,
+  getBlockedSupplierLog,
+  isBlockedFetchError,
+  isBlockedHttpStatus,
+  isBlockedPageContent,
+  isBlockedSupplierName,
+  isBlockedSupplierUrl,
+  markSupplierUnavailable,
+  type SupplierUnavailableInfo,
+} from './supplierAvailability';
 import type { RealWebSearchHit, TavilySearchResponse } from './types';
 import { WEB_PRODUCT_RESULTS_LIMIT } from './types';
 
@@ -45,14 +59,18 @@ function mapTavilyHit(
   const title = row.title?.trim();
   if (!url || !title) return null;
 
+  if (isBlockedSupplierUrl(url)) return null;
+
   const content = resultContent(row);
+  if (isBlockedPageContent(content) || isBlockedPageContent(title)) return null;
+
   const classification = classifyProductUrl(url, title, content);
 
   if (!classification.isProductPage) return null;
 
   const supplier =
     detectSupplierFromUrl(url) ?? detectSupplierFromText(`${title} ${content}`) ?? null;
-  if (!supplier) return null;
+  if (!supplier || isBlockedSupplierName(supplier)) return null;
 
   const extracted = extractProductFields(title, content, parsed.unit || 'm²');
   const productTitle = cleanProductTitle(extracted.productName, supplier);
@@ -131,7 +149,10 @@ function resolveTavilySearchUrl(): string {
   return configured;
 }
 
-async function callTavilyApi(query: string): Promise<TavilyApiPayload> {
+async function callTavilyApi(
+  query: string,
+  includeDomains: string[]
+): Promise<TavilyApiPayload> {
   const { apiKey, searchDepth } = realSearchConfig.tavily;
   const searchUrl = resolveTavilySearchUrl();
 
@@ -149,7 +170,7 @@ async function callTavilyApi(query: string): Promise<TavilyApiPayload> {
       max_results: TAVILY_FETCH_POOL,
       include_answer: false,
       include_raw_content: true,
-      include_domains: BTP_SUPPLIER_DOMAIN_LIST,
+      include_domains: includeDomains.length > 0 ? includeDomains : getScrapeAllowedDomains(),
       country: 'france',
       topic: 'general',
     }),
@@ -157,6 +178,9 @@ async function callTavilyApi(query: string): Promise<TavilyApiPayload> {
 
   if (!res.ok) {
     const errText = await res.text().catch(() => res.statusText);
+    if (isBlockedHttpStatus(res.status) || isBlockedPageContent(errText)) {
+      throw new Error(`blocked:${res.status}`);
+    }
     throw new Error(`Tavily ${res.status}: ${errText.slice(0, 200)}`);
   }
 
@@ -173,34 +197,90 @@ function dedupeByUrl(hits: RealWebSearchHit[]): RealWebSearchHit[] {
   });
 }
 
+function hitsFromPayload(
+  payload: TavilyApiPayload,
+  parsed: ParsedProcurementQuery,
+  indexOffset = 0
+): RealWebSearchHit[] {
+  return (payload.results ?? [])
+    .map((r, i) => mapTavilyHit(r, i + indexOffset, parsed))
+    .filter((h): h is RealWebSearchHit => h !== null);
+}
+
+async function fetchHitsForSupplier(
+  supplier: BtpSupplierTarget,
+  parsed: ParsedProcurementQuery,
+  indexOffset: number
+): Promise<RealWebSearchHit[]> {
+  const query = `${buildTavilyWebQuery(parsed)} ${supplier.name}`.slice(0, 400);
+  const domains = supplier.domains.filter(Boolean);
+  if (!domains.length) return [];
+
+  try {
+    const payload = await callTavilyApi(query, domains);
+    return hitsFromPayload(payload, parsed, indexOffset);
+  } catch (error) {
+    if (isBlockedFetchError(error) || (error instanceof Error && error.message.startsWith('blocked:'))) {
+      markSupplierUnavailable(supplier.name, 'automated_requests_blocked');
+    } else {
+      markSupplierUnavailable(supplier.name, 'fetch_failed');
+    }
+    return [];
+  }
+}
+
 async function fetchProductHits(parsed: ParsedProcurementQuery): Promise<{
   hits: RealWebSearchHit[];
   query: string;
+  unavailableSuppliers: SupplierUnavailableInfo[];
 }> {
+  const unavailableSuppliers = dedupeUnavailable(collectPolicyBlockedSuppliers());
   const primaryQuery = buildTavilyWebQuery(parsed);
-  const payload = await callTavilyApi(primaryQuery);
+  const allowedDomains = getScrapeAllowedDomains();
+  let hits: RealWebSearchHit[] = [];
 
-  let hits = dedupeByUrl(
-    (payload.results ?? [])
-      .map((r, i) => mapTavilyHit(r, i, parsed))
-      .filter((h): h is RealWebSearchHit => h !== null)
-  );
+  if (allowedDomains.length > 0) {
+    try {
+      const payload = await callTavilyApi(primaryQuery, allowedDomains);
+      hits = dedupeByUrl(hitsFromPayload(payload, parsed));
+    } catch (error) {
+      console.warn('[SmartChantier] Tavily bulk search failed, continuing per supplier:', error);
+    }
+  }
 
   if (hits.length < WEB_PRODUCT_RESULTS_LIMIT) {
-    const fallbackQuery = buildTavilyProductFallbackQuery(parsed);
-    const payload2 = await callTavilyApi(fallbackQuery);
-    const more = (payload2.results ?? [])
-      .map((r, i) => mapTavilyHit(r, i + 100, parsed))
-      .filter((h): h is RealWebSearchHit => h !== null);
-    hits = dedupeByUrl([...hits, ...more]);
+    try {
+      const fallbackQuery = buildTavilyProductFallbackQuery(parsed);
+      const payload2 = await callTavilyApi(fallbackQuery, allowedDomains);
+      hits = dedupeByUrl([...hits, ...hitsFromPayload(payload2, parsed, 100)]);
+    } catch {
+      /* per-supplier pass below */
+    }
+  }
+
+  if (hits.length < WEB_PRODUCT_RESULTS_LIMIT) {
+    const suppliers = getScrapeAllowedSuppliers();
+    let offset = 200;
+    for (const supplier of suppliers) {
+      if (hits.length >= WEB_PRODUCT_RESULTS_LIMIT) break;
+      const more = await fetchHitsForSupplier(supplier, parsed, offset);
+      offset += 50;
+      if (more.length === 0) continue;
+      hits = dedupeByUrl([...hits, ...more]);
+    }
   }
 
   const ranked = rankProductHits(hits, parsed).slice(0, WEB_PRODUCT_RESULTS_LIMIT);
-  return { hits: ranked, query: primaryQuery };
+  return {
+    hits: ranked,
+    query: primaryQuery,
+    unavailableSuppliers: dedupeUnavailable([...unavailableSuppliers, ...getBlockedSupplierLog()]),
+  };
 }
 
 /**
  * Recherche web — fiches produit uniquement (liens directs, prix, dispo).
+ * Blocked retailers (Leroy Merlin, Adeo) are skipped; search continues with other suppliers.
  */
 export async function searchTavilyWeb(
   parsed: ParsedProcurementQuery
@@ -211,20 +291,38 @@ export async function searchTavilyWeb(
       results: [],
       resultOrigin: 'demo',
       providerNote: TAVILY_UNCONFIGURED_MESSAGE,
+      unavailableSuppliers: [],
     };
   }
 
-  const { hits, query } = await fetchProductHits(parsed);
+  try {
+    const { hits, query, unavailableSuppliers } = await fetchProductHits(parsed);
 
-  return {
-    query,
-    results: hits,
-    resultOrigin: 'real_web',
-    providerNote:
-      hits.length > 0
-        ? `${TAVILY_SOURCE_LABEL} — ${hits.length} fiche(s) produit (liens directs · France · EUR HT). Hors pages catalogue/accueil.`
-        : `Aucune fiche produit trouvée parmi les fournisseurs pro. Affinez matériau, format ou budget.`,
-  };
+    const unavailableNote =
+      unavailableSuppliers.length > 0
+        ? ` ${unavailableSuppliers.map((u) => `${u.supplier}: ${u.message}`).join(' · ')}`
+        : '';
+
+    return {
+      query,
+      results: hits,
+      resultOrigin: 'real_web',
+      unavailableSuppliers,
+      providerNote:
+        hits.length > 0
+          ? `${TAVILY_SOURCE_LABEL} — ${hits.length} fiche(s) produit (liens directs · France · EUR HT).${unavailableNote}`
+          : `Aucune fiche produit trouvée parmi les fournisseurs disponibles.${unavailableNote}`,
+    };
+  } catch (error) {
+    console.error('[SmartChantier] Tavily search error (non-fatal):', error);
+    return {
+      query: parsed.rawQuery,
+      results: [],
+      resultOrigin: 'demo',
+      providerNote: demoFallbackNote(),
+      unavailableSuppliers: dedupeUnavailable(collectPolicyBlockedSuppliers()),
+    };
+  }
 }
 
 export function emptyDemoSearchResponse(note: string): TavilySearchResponse {
@@ -233,6 +331,7 @@ export function emptyDemoSearchResponse(note: string): TavilySearchResponse {
     results: [],
     resultOrigin: 'demo',
     providerNote: note,
+    unavailableSuppliers: [],
   };
 }
 

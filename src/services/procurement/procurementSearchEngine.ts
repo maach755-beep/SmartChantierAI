@@ -14,6 +14,11 @@ import { resolveParsedQuery, generateLlmProcurementSummary } from './llmAnalysis
 import { computeCompositeScore } from './scoring';
 import { formatDistance, getDistanceKm } from './supplierMeta';
 import { fetchCatalogFromProviders } from './providers';
+import {
+  collectPolicyBlockedSuppliers,
+  dedupeUnavailable,
+  isBlockedSupplierName,
+} from '@/services/realSearch/supplierAvailability';
 import type { CatalogItemDTO } from './providers/types';
 import { WEB_PRODUCT_RESULTS_LIMIT } from '@/services/realSearch/types';
 
@@ -205,6 +210,7 @@ export async function runProcurementSearch(rawQuery: string): Promise<Procuremen
           : providerResult.source;
 
   const results = providerResult.items
+    .filter((dto) => !isBlockedSupplierName(dto.supplier))
     .map((dto) => mapItem(dto, parsed))
     .sort((a, b) => b.scores.composite - a.scores.composite)
     .slice(0, providerResult.resultOrigin === 'real_web' ? WEB_PRODUCT_RESULTS_LIMIT : 12);
@@ -238,6 +244,19 @@ export async function runProcurementSearch(rawQuery: string): Promise<Procuremen
         ? `${llmLabel} — ${providerResult.note}`
         : providerResult.note;
 
+  const unavailableSuppliers = dedupeUnavailable([
+    ...(providerResult.unavailableSuppliers ?? []).map((u) => ({
+      supplier: u.supplier,
+      reason: u.reason,
+      message: u.message,
+    })),
+    ...collectPolicyBlockedSuppliers().map((u) => ({
+      supplier: u.supplier,
+      reason: u.reason,
+      message: u.message,
+    })),
+  ]);
+
   return {
     id: newSearchId(),
     generatedAt: new Date().toISOString(),
@@ -252,5 +271,6 @@ export async function runProcurementSearch(rawQuery: string): Promise<Procuremen
     costEstimate,
     deliveryEstimate,
     aiSummary,
+    unavailableSuppliers,
   };
 }
