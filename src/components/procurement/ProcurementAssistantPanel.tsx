@@ -15,6 +15,7 @@ import {
   TAVILY_UNCONFIGURED_MESSAGE,
 } from '@/services/realSearch/config';
 import { runProcurementSearch } from '@/services/procurement/procurementSearchEngine';
+import { safeRenderValue } from '@/utils/safeRenderValue';
 import { detectExpensiveQuotations, type ExpensiveQuotationAlert } from '@/services/saas/platform';
 import {
   exportProcurementComparison,
@@ -292,7 +293,7 @@ export function ProcurementAssistantPanel({
                   className="rounded-lg border border-btp-600/30 bg-btp-800/30 px-3 py-2"
                 >
                   <p className="text-[10px] uppercase tracking-wide text-slate-500">{row.label}</p>
-                  <p className="text-white font-medium mt-0.5 truncate">{row.value}</p>
+                  <p className="text-white font-medium mt-0.5 truncate">{safeRenderValue(row.value)}</p>
                 </div>
               ))}
             </div>

@@ -2,14 +2,15 @@ import { procurementConfig } from '@/services/procurement/config';
 import { ollamaChat, ollamaChatJson } from '@/services/ai/ollamaClient';
 import { OLLAMA_OFFLINE_MESSAGE, OLLAMA_TEXT_MODEL_MISSING } from '@/services/ai/ollamaConfig';
 import type { ParsedProcurementQuery, ProcurementProductResult, ProcurementProjectType } from '@/types/procurementSearch';
+import { coerceAiStringField } from '@/utils/safeRenderValue';
 import { parseProcurementQuery } from './queryParser';
 
 export type LlmProviderUsed = 'ollama' | 'openai' | null;
 
 interface LlmParseJson {
-  materialType?: string;
-  dimensions?: string;
-  format?: string;
+  materialType?: unknown;
+  dimensions?: unknown;
+  format?: unknown;
   quantity?: number;
   unit?: string;
   budgetPerUnitEur?: number;
@@ -26,11 +27,16 @@ const PARSE_SYSTEM =
 
 function mergeParseJson(fallback: ParsedProcurementQuery, parsed: LlmParseJson, provider: LlmProviderUsed): ParsedProcurementQuery {
   const projectType = (parsed.projectType as ProcurementProjectType) || fallback.projectType;
+  const dimensionsFromAi = coerceAiStringField(
+    parsed.dimensions ?? parsed.format,
+    fallback.dimensions
+  );
+  const formatHintFromAi = coerceAiStringField(parsed.format, fallback.formatHint);
   return {
     ...fallback,
-    materialType: parsed.materialType ?? fallback.materialType,
-    dimensions: parsed.dimensions ?? parsed.format ?? fallback.dimensions,
-    formatHint: parsed.format ?? fallback.formatHint,
+    materialType: coerceAiStringField(parsed.materialType, fallback.materialType),
+    dimensions: dimensionsFromAi || formatHintFromAi || fallback.dimensions,
+    formatHint: formatHintFromAi || dimensionsFromAi || fallback.formatHint,
     quantity: parsed.quantity ?? fallback.quantity,
     unit: parsed.unit?.replace('m2', 'm²') ?? fallback.unit,
     maxBudgetPerUnit: parsed.budgetPerUnitEur ?? fallback.maxBudgetPerUnit,

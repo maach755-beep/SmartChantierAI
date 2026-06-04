@@ -9,6 +9,7 @@ import {
 import { preloadPdfFonts } from '@/services/pdf/pdfFonts';
 import { buildComparisonRowsFromProcurement } from '@/services/procurement/procurementComparison';
 import { formatCurrency } from '@/utils/format';
+import { coerceAiStringField } from '@/utils/safeRenderValue';
 import { TVA_RATE } from '@/config/france';
 import type { ProcurementProductResult, ProcurementSearchResponse } from '@/types/procurementSearch';
 
@@ -106,7 +107,7 @@ export async function exportProcurementReport(proc: ProcurementSearchResponse): 
         heading: 'Compréhension IA',
         lines: [
           `Matériau : ${p.materialType}`,
-          `Dimensions : ${p.dimensions || '—'}`,
+          `Dimensions : ${coerceAiStringField(p.dimensions, '—')}`,
           `Quantité : ${proc.costEstimate.quantity} ${proc.costEstimate.unit}`,
           `Budget : ${p.maxBudgetPerUnit > 0 ? `${p.maxBudgetPerUnit} € HT/${p.unit}` : '—'}`,
           `Ville : ${p.location}`,

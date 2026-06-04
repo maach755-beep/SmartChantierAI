@@ -1,3 +1,5 @@
+import { safeRenderValue } from '@/utils/safeRenderValue';
+
 interface Column<T> {
   key: string;
   header: string;
@@ -51,7 +53,9 @@ export function DataTable<T extends { id: string }>({
             >
               {columns.map((col) => (
                 <td key={col.key} className="px-3 py-2 text-slate-200">
-                  {col.render ? col.render(row) : String((row as Record<string, unknown>)[col.key] ?? '')}
+                  {col.render
+                    ? col.render(row)
+                    : safeRenderValue((row as Record<string, unknown>)[col.key], '')}
                 </td>
               ))}
             </tr>

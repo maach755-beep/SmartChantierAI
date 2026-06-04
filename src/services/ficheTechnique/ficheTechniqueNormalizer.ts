@@ -4,6 +4,7 @@ import type {
   TechnicalSheetProduct,
 } from '@/types/ficheTechnique';
 import type { RealWebSearchHit } from '@/services/realSearch/types';
+import { coerceAiStringField } from '@/utils/safeRenderValue';
 
 export interface RawTechnicalSheetData {
   productName: string;
@@ -48,8 +49,8 @@ export interface RawTechnicalSheetData {
   notes?: string;
 }
 
-function orDash(value?: string): string {
-  const v = value?.trim();
+function orDash(value?: unknown): string {
+  const v = coerceAiStringField(value, '');
   return v && v !== '—' ? v : '—';
 }
 

@@ -13,6 +13,7 @@ import { generateTechnicalSheet } from '@/services/technicalSheet/engine';
 import { preloadPdfFonts } from '@/services/pdf/pdfFonts';
 import type { TechnicalSheetDocument, TechnicalSheetPdfLabels } from '@/types/technicalSheet';
 import { formatDate } from '@/utils/format';
+import { safeRenderValue } from '@/utils/safeRenderValue';
 
 const inputClass =
   'w-full bg-btp-900/80 border border-btp-600/30 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500';
@@ -174,7 +175,7 @@ export function TechnicalSheetAssistantPage() {
             ].map((row) => (
               <div key={row.label} className="rounded-lg border border-btp-600/30 bg-btp-900/30 px-3 py-2">
                 <p className="text-[10px] uppercase tracking-wide text-slate-500">{row.label}</p>
-                <p className="text-white font-medium mt-0.5">{row.value}</p>
+                <p className="text-white font-medium mt-0.5">{safeRenderValue(row.value)}</p>
               </div>
             ))}
           </div>
