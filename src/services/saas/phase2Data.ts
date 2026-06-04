@@ -552,7 +552,7 @@ export async function listNotifications(userId: string = LOCAL_USER_ID): Promise
     .map(dbNotificationToApp);
 }
 
-export async function markNotificationRead(id: string, _userId: string = LOCAL_USER_ID): Promise<void> {
+export async function markNotificationRead(id: string): Promise<void> {
   if (isSupabaseConfigured) {
     await sbUpdate('notifications', id, { read: true });
     return;

@@ -10,7 +10,7 @@ export const ollamaConfig = {
   baseUrl: readEnv('VITE_OLLAMA_BASE_URL', import.meta.env.DEV ? '/ollama' : 'http://localhost:11434'),
   textModel: readEnv('VITE_OLLAMA_TEXT_MODEL', 'llama3.1'),
   visionModel: readEnv('VITE_OLLAMA_VISION_MODEL', 'llava'),
-  textModelFallbacks: ['llama3.1', 'llama3.1:latest', 'qwen2.5', 'qwen2.5:latest', 'qwen2.5:7b', 'qwen2.5:14b'],
+  textModelFallbacks: ['llama3.1', 'llama3.1:latest', 'mistral', 'mistral:latest', 'qwen2.5', 'qwen2.5:latest', 'qwen2.5:7b', 'qwen2.5:14b'],
   visionModelFallbacks: ['llava', 'llava:latest', 'llava:13b', 'llava:7b', 'moondream'],
   requestTimeoutMs: Number(readEnv('VITE_OLLAMA_TIMEOUT_MS', '90000')),
 } as const;

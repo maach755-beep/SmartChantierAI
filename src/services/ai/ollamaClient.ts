@@ -56,11 +56,13 @@ export async function getOllamaStatus(force = false): Promise<OllamaStatus> {
     ? pickInstalledModel(ollamaConfig.visionModel, ollamaConfig.visionModelFallbacks, installed)
     : null;
 
-  let message = '';
-  if (!online) message = OLLAMA_OFFLINE_MESSAGE;
-  else if (!textModel) message = OLLAMA_TEXT_MODEL_MISSING;
-  else if (!visionModel) message = OLLAMA_VISION_MODEL_MISSING;
-  else message = `Ollama OK — texte: ${textModel}, vision: ${visionModel}`;
+  const message = !online
+    ? OLLAMA_OFFLINE_MESSAGE
+    : !textModel
+      ? OLLAMA_TEXT_MODEL_MISSING
+      : !visionModel
+        ? OLLAMA_VISION_MODEL_MISSING
+        : `Ollama OK — texte: ${textModel}, vision: ${visionModel}`;
 
   cachedStatus = { online, textModel, visionModel, installedModels: installed, message };
   cacheAt = Date.now();

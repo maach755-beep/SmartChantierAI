@@ -133,10 +133,11 @@ export function usePlatformData(): PlatformData {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
-    void refresh();
+    const t0 = window.setTimeout(() => void refresh(), 0);
+    return () => clearTimeout(t0);
   }, [refresh]);
 
   return {

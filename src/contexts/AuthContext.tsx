@@ -49,12 +49,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void refresh();
-    if (!supabase) return;
+    const t0 = window.setTimeout(() => void refresh(), 0);
+    if (!supabase) return () => clearTimeout(t0);
     const { data: sub } = supabase.auth.onAuthStateChange(() => {
       void refresh();
     });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      clearTimeout(t0);
+      sub.subscription.unsubscribe();
+    };
   }, [refresh]);
 
   const signIn = useCallback(async (email: string, password: string) => {

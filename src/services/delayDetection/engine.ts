@@ -64,6 +64,6 @@ export function computeDelayDetectionFromData(
 }
 
 /** @deprecated Use computeDelayDetectionFromData with platform data */
-export function computeDelayDetection(_chantierId?: string): DelayDetectionResult[] {
+export function computeDelayDetection(): DelayDetectionResult[] {
   return [];
 }

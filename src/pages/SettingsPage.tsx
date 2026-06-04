@@ -10,6 +10,7 @@ import { ROLE_LABELS, type UserRole } from '@/types/auth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { APP_COUNTRY, APP_CURRENCY } from '@/config/france';
 import { getRealWebSearchStatusLabel, isRealWebSearchEnabled } from '@/services/realSearch/config';
+import { AiSettingsPanel } from '@/components/settings/AiSettingsPanel';
 
 const ROLES: UserRole[] = ['admin', 'project_manager', 'site_manager', 'client'];
 
@@ -54,6 +55,8 @@ export function SettingsPage() {
         <Card title={t('settings.language')}>
           <LanguageSwitcher />
         </Card>
+
+        <AiSettingsPanel />
 
         <Card title={t('settings.realSearchTitle')}>
           <dl className="text-sm space-y-2">

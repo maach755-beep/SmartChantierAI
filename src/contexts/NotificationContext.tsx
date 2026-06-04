@@ -33,7 +33,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, [userId]);
 
   useEffect(() => {
-    void refresh();
+    const t0 = window.setTimeout(() => void refresh(), 0);
+    return () => clearTimeout(t0);
   }, [refresh]);
 
   const value = useMemo(() => {
@@ -43,7 +44,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       unreadCount,
       refresh: () => void refresh(),
       markRead: (id: string) => {
-        void markNotificationRead(id, userId).then(() => refresh());
+        void markNotificationRead(id).then(() => refresh());
       },
       markAllRead: () => {
         void markAllNotificationsRead(userId).then(() => refresh());
