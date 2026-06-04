@@ -2,8 +2,6 @@
  * Client-side Ollama AI tests (procurement, no API server required).
  * Run: npx tsx --tsconfig tsconfig.app.json scripts/test-ai-client.ts
  */
-import { writeFileSync } from 'node:fs';
-
 const out = { passed: [], failed: [] };
 
 async function run() {
@@ -77,7 +75,6 @@ async function run() {
     out.failed.push({ name: 'Project analysis', error: e instanceof Error ? e.message : String(e) });
   }
 
-  writeFileSync('scripts/.test-ai-client-result.json', JSON.stringify(out, null, 2));
   console.log(JSON.stringify(out, null, 2));
   if (out.failed.length) process.exit(1);
 }
