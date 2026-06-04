@@ -1,19 +1,15 @@
 /** Ollama — default local AI (OpenAI optional). */
 
 import { loadAiPreferences } from './aiPreferences';
-
-const readEnv = (key: string, fallback = '') => {
-  const v = import.meta.env[key];
-  return typeof v === 'string' && v.trim() ? v.trim() : fallback;
-};
+import { isViteDevMode, readAppEnv } from '@/utils/env';
 
 const ENV_DEFAULTS = {
-  baseUrl: readEnv('VITE_OLLAMA_BASE_URL', import.meta.env.DEV ? '/ollama' : 'http://localhost:11434'),
-  textModel: readEnv('VITE_OLLAMA_TEXT_MODEL', 'llama3.1'),
-  visionModel: readEnv('VITE_OLLAMA_VISION_MODEL', 'llava'),
+  baseUrl: readAppEnv('VITE_OLLAMA_BASE_URL', isViteDevMode() ? '/ollama' : 'http://localhost:11434'),
+  textModel: readAppEnv('VITE_OLLAMA_TEXT_MODEL', 'llama3.1'),
+  visionModel: readAppEnv('VITE_OLLAMA_VISION_MODEL', 'llava'),
   textModelFallbacks: ['llama3.1', 'llama3.1:latest', 'mistral', 'mistral:latest', 'qwen2.5', 'qwen2.5:latest', 'qwen2.5:7b', 'qwen2.5:14b'] as const,
   visionModelFallbacks: ['llava', 'llava:latest', 'llava:13b', 'llava:7b', 'moondream'] as const,
-  requestTimeoutMs: Number(readEnv('VITE_OLLAMA_TIMEOUT_MS', '90000')),
+  requestTimeoutMs: Number(readAppEnv('VITE_OLLAMA_TIMEOUT_MS', '90000')),
 };
 
 /** Env defaults (static). */

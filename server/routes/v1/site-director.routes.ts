@@ -5,35 +5,66 @@ import type { Lang, SiteDirectorSnapshot } from '../../../shared/site-director/t
 
 export const siteDirectorRouter = Router();
 
-siteDirectorRouter.post('/analyze', (req, res) => {
-  const { snapshot, focusProjectId } = req.body as {
-    snapshot: SiteDirectorSnapshot;
-    focusProjectId?: string;
+function normalizeSnapshot(input: SiteDirectorSnapshot): SiteDirectorSnapshot {
+  return {
+    chantiers: input.chantiers ?? [],
+    risks: input.risks ?? [],
+    materials: input.materials ?? [],
+    suppliers: input.suppliers ?? [],
+    tasks: input.tasks ?? [],
+    team: input.team ?? [],
+    attendance: input.attendance ?? [],
+    modifications: input.modifications ?? [],
+    materialRequests: input.materialRequests ?? [],
   };
-  if (!snapshot?.chantiers?.length) {
-    return res.status(400).json({ error: 'snapshot with chantiers required' });
+}
+
+siteDirectorRouter.post('/analyze', (req, res) => {
+  try {
+    const { snapshot, focusProjectId } = req.body as {
+      snapshot: SiteDirectorSnapshot;
+      focusProjectId?: string;
+    };
+    if (!snapshot?.chantiers?.length) {
+      return res.status(400).json({ error: 'snapshot with chantiers required' });
+    }
+    const data = runSiteDirectorAnalysis(normalizeSnapshot(snapshot), focusProjectId);
+    res.json({ data });
+  } catch (e) {
+    res.status(500).json({ error: e instanceof Error ? e.message : 'Analyze failed' });
   }
-  const data = runSiteDirectorAnalysis(snapshot, focusProjectId);
-  res.json({ data });
 });
 
 siteDirectorRouter.post('/ask', (req, res) => {
-  const { question, snapshot, focusProjectId, lang } = req.body as {
-    question: string;
-    snapshot: SiteDirectorSnapshot;
-    focusProjectId?: string;
-    lang?: Lang;
-  };
-  if (!question || !snapshot) {
-    return res.status(400).json({ error: 'question and snapshot required' });
+  try {
+    const { question, snapshot, focusProjectId, lang } = req.body as {
+      question: string;
+      snapshot: SiteDirectorSnapshot;
+      focusProjectId?: string;
+      lang?: Lang;
+    };
+    if (!question || !snapshot) {
+      return res.status(400).json({ error: 'question and snapshot required' });
+    }
+    const answer = answerDirectorQuestion(
+      question,
+      normalizeSnapshot(snapshot),
+      focusProjectId,
+      lang ?? 'fr'
+    );
+    res.json({ data: { answer } });
+  } catch (e) {
+    res.status(500).json({ error: e instanceof Error ? e.message : 'Ask failed' });
   }
-  const answer = answerDirectorQuestion(question, snapshot, focusProjectId, lang ?? 'fr');
-  res.json({ data: { answer } });
 });
 
 siteDirectorRouter.post('/briefing', (req, res) => {
-  const { snapshot } = req.body as { snapshot: SiteDirectorSnapshot };
-  if (!snapshot) return res.status(400).json({ error: 'snapshot required' });
-  const analysis = runSiteDirectorAnalysis(snapshot);
-  res.json({ data: analysis.briefing });
+  try {
+    const { snapshot } = req.body as { snapshot: SiteDirectorSnapshot };
+    if (!snapshot) return res.status(400).json({ error: 'snapshot required' });
+    const analysis = runSiteDirectorAnalysis(normalizeSnapshot(snapshot));
+    res.json({ data: analysis.briefing });
+  } catch (e) {
+    res.status(500).json({ error: e instanceof Error ? e.message : 'Briefing failed' });
+  }
 });

@@ -36,10 +36,11 @@ VITE_OPENAI_API_KEY=sk-...
    ollama pull mistral
    ollama pull llava
    ```
-3. Start the app:
+3. Start the app (API + frontend — avoids ECONNREFUSED on `/api/*`):
    ```bash
    npm run dev
    ```
+   This runs the Express API on port **3001** and Vite on **5173**. For API only: `npm run api:plan`.
 4. Open **Paramètres IA** (`/parametres-ia`) or **Settings → Intelligence artificielle** to see:
    - Current provider (Ollama)
    - Ollama online/offline status

@@ -2,9 +2,10 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+import { aiHealthFallbackPlugin } from './scripts/vite-ai-health-plugin'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [aiHealthFallbackPlugin(), react(), tailwindcss()],
   optimizeDeps: {
     include: ['jspdf', 'jspdf-autotable'],
   },

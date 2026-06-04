@@ -11,24 +11,21 @@ export type AiPreferences = {
 
 const STORAGE_KEY = 'smartchantier_ai_prefs_v1';
 
+import { isViteDevMode, readAppEnv } from '@/utils/env';
+
 const DEFAULTS: AiPreferences = {
   primaryProvider: 'ollama',
-  ollamaBaseUrl: import.meta.env.DEV ? '/ollama' : 'http://localhost:11434',
+  ollamaBaseUrl: isViteDevMode() ? '/ollama' : 'http://localhost:11434',
   textModel: 'llama3.1',
   visionModel: 'llava',
 };
 
-function readEnv(key: string, fallback = '') {
-  const v = import.meta.env[key];
-  return typeof v === 'string' && v.trim() ? v.trim() : fallback;
-}
-
 export function getEnvDefaults(): AiPreferences {
   return {
     primaryProvider: 'ollama',
-    ollamaBaseUrl: readEnv('VITE_OLLAMA_BASE_URL', DEFAULTS.ollamaBaseUrl),
-    textModel: readEnv('VITE_OLLAMA_TEXT_MODEL', DEFAULTS.textModel),
-    visionModel: readEnv('VITE_OLLAMA_VISION_MODEL', DEFAULTS.visionModel),
+    ollamaBaseUrl: readAppEnv('VITE_OLLAMA_BASE_URL', DEFAULTS.ollamaBaseUrl),
+    textModel: readAppEnv('VITE_OLLAMA_TEXT_MODEL', DEFAULTS.textModel),
+    visionModel: readAppEnv('VITE_OLLAMA_VISION_MODEL', DEFAULTS.visionModel),
   };
 }
 
